@@ -1,1 +1,42 @@
-
+[
+  {
+    "name": "Grand Theft Auto: Vice City",
+    "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&q=80",
+    "bg": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=2000",
+    "description": "Welcome back to the 1980s. From the decade of big hair, excess and pastel suits comes a story of one man's rise to the top of the criminal pile.",
+    "file_src": "/games/gtavc/main.js",
+    "featured": true
+  },
+  {
+    "name": "Minecraft",
+    "image": "https://images.unsplash.com/photo-1607988795691-3d0147b43231?w=150&q=80",
+    "bg": "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?q=80&w=2000",
+    "description": "Explore infinite worlds and build everything from the simplest of homes to the grandest of castles. Play in creative mode with unlimited resources.",
+    "file_src": "/games/minecraft/app.wasm",
+    "featured": false
+  },
+  {
+    "name": "Undertale",
+    "image": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=150&q=80",
+    "bg": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2000",
+    "description": "The RPG game where you don't have to destroy anyone. Player choice is paramount as you navigate a world populated by quirky monsters.",
+    "file_src": "/games/undertale/index.html",
+    "featured": false
+  },
+  {
+    "name": "Deltarune",
+    "image": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=150&q=80",
+    "bg": "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2000",
+    "description": "Toby Fox's alternative tale following a brand new set of heroes. Fall into the dark world and fulfill the ancient prophecy.",
+    "file_src": "/games/deltarune/launch.bin",
+    "featured": false
+  },
+  {
+    "name": "Totally Accurate Battle Simulator",
+    "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150&q=80",
+    "bg": "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=2000",
+    "description": "Be the leader of red and blue wobblers from ancient lands, spooky places, and fantasy worlds. Watch them fight in simulations made with the wobblest physics ever created.",
+    "file_src": "/games/tabs/tabs_data.wasm",
+    "featured": false
+  }
+]
