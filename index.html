@@ -39,14 +39,14 @@
                 `;
                 this.container = this.shadowRoot.getElementById('app-container');
                 
-                await this.loadView('loading.html');
+                await this.loadView('/public/loading.html');
                 
                 setTimeout(() => {
                     const hasVisited = localStorage.getItem('flintos_visited');
                     if (!hasVisited) {
-                        this.loadView('welcome.html');
+                        this.loadView('/public/welcome.html');
                     } else {
-                        this.loadView('home.html');
+                        this.loadView('/public/home.html');
                     }
                 }, 2000);
             }
@@ -67,18 +67,18 @@
                 if (enterBtn) {
                     enterBtn.addEventListener('click', () => {
                         localStorage.setItem('flintos_visited', 'true');
-                        this.loadView('home.html');
+                        this.loadView('/public/home.html');
                     });
                 }
 
                 const storeBtn = this.shadowRoot.getElementById('store-btn');
                 if (storeBtn) {
-                    storeBtn.addEventListener('click', () => this.loadView('store.html'));
+                    storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
                 }
 
                 const backBtn = this.shadowRoot.getElementById('back-btn');
                 if (backBtn) {
-                    backBtn.addEventListener('click', () => this.loadView('home.html'));
+                    backBtn.addEventListener('click', () => this.loadView('/public/home.html'));
                 }
                 
                 const timeEl = this.shadowRoot.getElementById('current-time');
