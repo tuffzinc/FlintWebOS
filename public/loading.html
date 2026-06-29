@@ -1,0 +1,33 @@
+<style>
+    .loading-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        background: #000;
+    }
+    .flint-logo {
+        font-size: 2.5rem;
+        font-weight: 300;
+        letter-spacing: 5px;
+        margin-bottom: 30px;
+        color: #fff;
+        animation: pulse 2s infinite alternate;
+    }
+    .spinner-ring {
+        width: 50px;
+        height: 50px;
+        border: 2px solid transparent;
+        border-top-color: #0070cc;
+        border-right-color: #0070cc;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.5); } }
+</style>
+<div class="loading-screen">
+    <div class="flint-logo">FlintOS</div>
+    <div class="spinner-ring"></div>
+</div>
