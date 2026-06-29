@@ -22,7 +22,7 @@
         height: 40px;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 1.2rem;
+        font-size: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -59,53 +59,40 @@
     
     .store-item {
         height: 280px;
-        background: rgba(255,255,255,0.05);
         border-radius: 12px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
         padding: 15px;
-        transition: all 0.2s;
+        transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
         cursor: pointer;
         border: 1px solid transparent;
         position: relative;
         overflow: hidden;
     }
-    .store-item::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-        z-index: 1;
-    }
     .store-item > * { position: relative; z-index: 2; }
     .store-item:hover {
         transform: translateY(-5px) scale(1.02);
-        background: rgba(255,255,255,0.1);
         border-color: #0070cc;
-        box-shadow: 0 10px 20px rgba(0, 112, 204, 0.4);
+        box-shadow: 0 10px 24px rgba(0, 112, 204, 0.45);
     }
-    .item-title { margin: 0; font-size: 1rem; font-weight: 500; }
-    .item-price { color: #fff; font-weight: bold; margin-top: 5px; font-size: 0.9rem; background: #0070cc; padding: 4px 8px; border-radius: 4px; align-self: flex-start; }
+    .item-title { margin: 0; font-size: 1.1rem; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    .item-price { color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem; background: #0070cc; padding: 5px 12px; border-radius: 6px; align-self: flex-start; display: flex; align-items: center; }
     
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
+
 <div class="store-screen">
     <div class="store-header">
-        <button class="back-btn" id="back-btn">←</button>
+        <button class="back-btn" id="back-btn"><i class="fas fa-arrow-left"></i></button>
         <h2 class="store-title">FlintOS Store</h2>
     </div>
     <div class="store-nav">
-        <span class="active">Latest</span>
+        <span class="active">All Software</span>
         <span>Collections</span>
         <span>Deals</span>
         <span>Subscriptions</span>
     </div>
-    <div class="store-grid">
-        <div class="store-item" style="background: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400') center/cover;"><p class="item-title">Neon Drifter</p><p class="item-price">$69.99</p></div>
-        <div class="store-item" style="background: url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400') center/cover;"><p class="item-title">Space Frontier</p><p class="item-price">$49.99</p></div>
-        <div class="store-item" style="background: url('https://images.unsplash.com/photo-1605901309584-818e25960b8f?w=400') center/cover;"><p class="item-title">Cyber Battle</p><p class="item-price">$19.99</p></div>
-        <div class="store-item" style="background: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400') center/cover;"><p class="item-title">Retro Pass</p><p class="item-price">$29.99</p></div>
-        <div class="store-item"><p class="item-title">Flint Coins</p><p class="item-price">$9.99</p></div>
-    </div>
+    
+    <div class="store-grid" id="dynamic-store-grid"></div>
 </div>
