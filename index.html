@@ -33,11 +33,58 @@
 
             async connectedCallback() {
                 this.shadowRoot.innerHTML = `
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
                     <style>
                         :host { display: block; width: 100vw; height: 100vh; }
                         #app-container { width: 100%; height: 100%; position: relative; }
+                        
+                        /* Sandboxed Game Engine Player Overlay Styles */
+                        #game-layer {
+                            display: none;
+                            position: fixed;
+                            top: 0; left: 0;
+                            width: 100vw; height: 100vh;
+                            z-index: 99999;
+                            background-color: #000000;
+                        }
+                        #game-frame {
+                            width: 100%; height: 100%;
+                            border: none;
+                            background-color: #000000;
+                        }
+                        #close-game-btn {
+                            position: absolute;
+                            top: 25px; right: 35px;
+                            background: rgba(15, 15, 20, 0.75);
+                            color: #ffffff;
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            padding: 10px 22px;
+                            border-radius: 30px;
+                            cursor: pointer;
+                            font-size: 0.9rem;
+                            font-weight: bold;
+                            backdrop-filter: blur(10px);
+                            -webkit-backdrop-filter: blur(10px);
+                            transition: all 0.2s ease;
+                            z-index: 100000;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        #close-game-btn:hover {
+                            background: #ffffff;
+                            color: #000000;
+                            transform: scale(1.04);
+                            border-color: #ffffff;
+                        }
                     </style>
+                    
                     <div id="app-container"></div>
+                    
+                    <div id="game-layer">
+                        <button id="close-game-btn"><i class="fas fa-xmark"></i> Close Game</button>
+                        <iframe id="game-frame" src="about:blank"></iframe>
+                    </div>
                 `;
                 this.container = this.shadowRoot.getElementById('app-container');
                 
@@ -66,6 +113,19 @@
             }
 
             bindEvents(currentView) {
+                // Main Iframe Runtime Subsystem Control Hooks
+                const closeGameBtn = this.shadowRoot.getElementById('close-game-btn');
+                if (closeGameBtn) {
+                    closeGameBtn.onclick = () => {
+                        const gameLayer = this.shadowRoot.getElementById('game-layer');
+                        const gameFrame = this.shadowRoot.getElementById('game-frame');
+                        if (gameLayer && gameFrame) {
+                            gameFrame.src = 'about:blank'; // Teardown execution container
+                            gameLayer.style.display = 'none';
+                        }
+                    };
+                }
+
                 // Welcome Screen Event
                 const enterBtn = this.shadowRoot.getElementById('enter-home');
                 if (enterBtn) {
@@ -86,10 +146,15 @@
                     backBtn.addEventListener('click', () => this.loadView('/public/home.html'));
                 }
 
+                // Run Active App Launcher Process
                 const playBtn = this.shadowRoot.getElementById('play-btn');
                 if (playBtn) {
                     playBtn.addEventListener('click', () => {
-                        alert(`Launching System Subprocess: \n${this.currentActiveFileSrc}`);
+                        if (this.currentActiveFileSrc) {
+                            this.launchIframeRuntime(this.currentActiveFileSrc);
+                        } else {
+                            alert("FlintOS Error: No execution sequence target loaded.");
+                        }
                     });
                 }
                 
@@ -102,22 +167,29 @@
                     updateTime();
                 }
 
+                // Routing Data Engine Pipeline Dispatches
                 if (currentView === '/public/home.html') {
-                    this.loadGamesData();
+                    this.loadGamesData('home');
+                } else if (currentView === '/public/store.html') {
+                    this.loadGamesData('store');
                 }
             }
 
-            async loadGamesData() {
+            async loadGamesData(targetLayer) {
                 try {
                     const response = await fetch('/data/games.json');
                     const games = await response.json();
-                    this.renderGames(games);
+                    if (targetLayer === 'home') {
+                        this.renderHomeGames(games);
+                    } else if (targetLayer === 'store') {
+                        this.renderStoreGames(games);
+                    }
                 } catch (error) {
                     console.error("FlintOS FileSystem Error reading games.json:", error);
                 }
             }
 
-            renderGames(games) {
+            renderHomeGames(games) {
                 const appRow = this.shadowRoot.getElementById('dynamic-app-row');
                 if (!appRow) return;
 
@@ -125,7 +197,10 @@
                 appRow.innerHTML = '';
                 if (storeBtn) appRow.appendChild(storeBtn);
 
-                games.forEach((game) => {
+                // Strategy Layer Filter: Render ONLY featured configurations on dashboard row
+                const featuredGames = games.filter(game => game.featured === true);
+
+                featuredGames.forEach((game) => {
                     const icon = document.createElement('div');
                     icon.className = 'app-icon';
                     icon.style.backgroundImage = `url('${game.image}')`;
@@ -134,11 +209,15 @@
                     
                     icon.addEventListener('click', () => this.updateDashboardHero(game, icon));
                     appRow.appendChild(icon);
-
-                    if (game.featured) {
-                        this.updateDashboardHero(game, icon);
-                    }
                 });
+
+                // Auto initialize hero matrix context using first element pointer
+                if (featuredGames.length > 0) {
+                    const firstGameIcon = appRow.querySelector('.app-icon:not(.store-btn)');
+                    if (firstGameIcon) {
+                        this.updateDashboardHero(featuredGames[0], firstGameIcon);
+                    }
+                }
 
                 const libraryIcon = document.createElement('div');
                 libraryIcon.className = 'app-icon library-icon';
@@ -148,8 +227,37 @@
                 libraryIcon.style.justifyContent = 'center';
                 libraryIcon.style.fontSize = '11px';
                 libraryIcon.style.color = 'rgba(255,255,255,0.6)';
-                libraryIcon.textContent = 'Library';
+                libraryIcon.innerHTML = `<i class="fas fa-layer-group" style="margin-bottom:4px; font-size:14px; display:block; text-align:center;"></i>`;
+                
+                // Extra style handling for standard block structures inside matrix configurations
+                libraryIcon.style.flexDirection = 'column';
                 appRow.appendChild(libraryIcon);
+            }
+
+            renderStoreGames(games) {
+                const storeGrid = this.shadowRoot.getElementById('dynamic-store-grid');
+                if (!storeGrid) return;
+
+                storeGrid.innerHTML = '';
+
+                // Strategy Layer Render: Expose absolute total array allocation layout inside grid
+                games.forEach((game) => {
+                    const item = document.createElement('div');
+                    item.className = 'store-item';
+                    item.style.background = `linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.15) 100%), url('${game.bg || game.image}') center/cover`;
+                    
+                    item.innerHTML = `
+                        <p class="item-title">${game.name}</p>
+                        <p class="item-price"><i class="fas fa-play" style="font-size:10px; margin-right:5px;"></i> Launch</p>
+                    `;
+                    
+                    // Allow absolute any targeted structure profile from execution nodes instantly
+                    item.addEventListener('click', () => {
+                        this.launchIframeRuntime(game.file_src);
+                    });
+                    
+                    storeGrid.appendChild(item);
+                });
             }
 
             updateDashboardHero(game, selectedIcon) {
@@ -167,6 +275,15 @@
                 }
                 if (title) title.textContent = game.name;
                 if (desc) desc.textContent = game.description;
+            }
+
+            launchIframeRuntime(sourceUrl) {
+                const gameLayer = this.shadowRoot.getElementById('game-layer');
+                const gameFrame = this.shadowRoot.getElementById('game-frame');
+                if (gameLayer && gameFrame) {
+                    gameFrame.src = sourceUrl;
+                    gameLayer.style.display = 'block';
+                }
             }
         }
 
