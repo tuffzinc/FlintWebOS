@@ -201,8 +201,9 @@
                     const icon = document.createElement('div');
                     icon.className = 'app-icon';
                     icon.style.backgroundImage = `url('${game.image}')`;
-                    icon.style.backgroundSize = 'stretch';
+                    icon.style.backgroundSize = 'cover';
                     icon.style.backgroundPosition = 'center';
+                    icon.style.backgroundRepeat = 'no-repeat';
                     
                     icon.addEventListener('click', () => this.updateDashboardHero(game, icon));
                     appRow.appendChild(icon);
