@@ -1,0 +1,47 @@
+<style>
+    .welcome-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        background: radial-gradient(circle at 50% 40%, #0c1832 0%, #000000 80%);
+        text-align: center;
+        animation: fadeIn 1.5s ease-out;
+    }
+    .welcome-title {
+        font-size: 3.5rem;
+        font-weight: 200;
+        margin: 0;
+        letter-spacing: 2px;
+    }
+    .welcome-subtitle {
+        color: rgba(255,255,255,0.6);
+        font-size: 1.1rem;
+        margin: 15px 0 60px 0;
+        font-weight: 400;
+    }
+    .ps-button {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.2);
+        color: #fff;
+        padding: 12px 40px;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        backdrop-filter: blur(4px);
+    }
+    .ps-button:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: #fff;
+        box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        transform: scale(1.05);
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+<div class="welcome-screen">
+    <h1 class="welcome-title">Welcome to FlintOS</h1>
+    <p class="welcome-subtitle">Press the button to begin.</p>
+    <button class="ps-button" id="enter-home">Start</button>
+</div>
