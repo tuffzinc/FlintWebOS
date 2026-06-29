@@ -127,7 +127,6 @@
                     };
                 }
 
-                // Welcome Screen Event
                 const enterBtn = this.shadowRoot.getElementById('enter-home');
                 if (enterBtn) {
                     enterBtn.addEventListener('click', () => {
@@ -136,7 +135,6 @@
                     });
                 }
 
-                // Navigation Events
                 const storeBtn = this.shadowRoot.getElementById('store-btn');
                 if (storeBtn) {
                     storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
@@ -168,7 +166,6 @@
                     updateTime();
                 }
 
-                // Routing Data Engine Pipeline Dispatches
                 if (currentView === '/public/home.html') {
                     this.loadGamesData('home');
                 } else if (currentView === '/public/store.html') {
@@ -198,21 +195,19 @@
                 appRow.innerHTML = '';
                 if (storeBtn) appRow.appendChild(storeBtn);
 
-                // Strategy Layer Filter: Render ONLY featured configurations on dashboard row
                 const featuredGames = games.filter(game => game.featured === true);
 
                 featuredGames.forEach((game) => {
                     const icon = document.createElement('div');
                     icon.className = 'app-icon';
                     icon.style.backgroundImage = `url('${game.image}')`;
-                    icon.style.backgroundSize = 'cover';
+                    icon.style.backgroundSize = 'stretch';
                     icon.style.backgroundPosition = 'center';
                     
                     icon.addEventListener('click', () => this.updateDashboardHero(game, icon));
                     appRow.appendChild(icon);
                 });
 
-                // Auto initialize hero matrix context using first element pointer
                 if (featuredGames.length > 0) {
                     const firstGameIcon = appRow.querySelector('.app-icon:not(.store-btn)');
                     if (firstGameIcon) {
@@ -230,7 +225,6 @@
                 libraryIcon.style.color = 'rgba(255,255,255,0.6)';
                 libraryIcon.innerHTML = `<i class="fas fa-layer-group" style="margin-bottom:4px; font-size:14px; display:block; text-align:center;"></i>`;
                 
-                // Extra style handling for standard block structures inside matrix configurations
                 libraryIcon.style.flexDirection = 'column';
                 appRow.appendChild(libraryIcon);
             }
@@ -241,7 +235,6 @@
 
                 storeGrid.innerHTML = '';
 
-                // Strategy Layer Render: Expose absolute total array allocation layout inside grid
                 games.forEach((game) => {
                     const item = document.createElement('div');
                     item.className = 'store-item';
@@ -252,7 +245,6 @@
                         <p class="item-price"><i class="fas fa-play" style="font-size:10px; margin-right:5px;"></i> Launch</p>
                     `;
                     
-                    // Allow absolute any targeted structure profile from execution nodes instantly
                     item.addEventListener('click', () => {
                         this.launchIframeRuntime(game.file_src);
                     });
