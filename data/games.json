@@ -9,10 +9,10 @@
   },
   {
     "name": "Minecraft",
-    "image": "https://images.unsplash.com/photo-1607988795691-3d0147b43231?w=150&q=80",
-    "bg": "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?q=80&w=2000",
+    "image": "/data/games/minecraft/logo.png",
+    "bg": "/data/games/minecraft/banner.png",
     "description": "Explore infinite worlds and build everything from the simplest of homes to the grandest of castles. Play in creative mode with unlimited resources.",
-    "file_src": "/games/minecraft/app.wasm",
+    "file_src": "/data/games/minecraft/game.html",
     "featured": false
   },
   {
