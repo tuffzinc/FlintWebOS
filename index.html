@@ -248,11 +248,19 @@
                         this.updateDashboardHero(savedGames[0], firstGameIcon);
                     }
                 } else {
-                    if (heroContent) heroContent.style.display = 'none';
-                    if (emptyState) emptyState.style.display = 'block';
-                    
-                    const screen = this.shadowRoot.getElementById('home-screen');
-                    if (screen) screen.style.backgroundImage = "linear-gradient(180deg, rgba(10,16,32,0.85) 0%, rgba(3,5,10,0.98) 100%)";
+const heroContent = this.shadowRoot.getElementById('hero-content');
+    if (heroContent) heroContent.style.display = 'none';
+
+    // Show the empty state message
+    const emptyState = this.shadowRoot.getElementById('empty-state');
+    if (emptyState) emptyState.style.display = 'block';
+
+    const title = this.shadowRoot.getElementById('hero-title');
+    const desc = this.shadowRoot.getElementById('hero-desc');
+    const screen = this.shadowRoot.getElementById('home-screen');
+    if (title) title.textContent = "Welcome to FlintOS";
+    if (desc) desc.textContent = "Your dashboard row is currently clear. Jump into the Store menu above to save games directly into your workspace.";
+    if (screen) screen.style.backgroundImage = "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.95) 100%)";
                 }
             }
 
@@ -340,6 +348,12 @@
                 const screen = this.shadowRoot.getElementById('home-screen');
                 const title = this.shadowRoot.getElementById('hero-title');
                 const desc = this.shadowRoot.getElementById('hero-desc');
+
+    const heroContent = this.shadowRoot.getElementById('hero-content');
+    if (heroContent) heroContent.style.display = 'block'; 
+    
+    const emptyState = this.shadowRoot.getElementById('empty-state');
+    if (emptyState) emptyState.style.display = 'none';
 
                 if (screen) {
                     screen.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(5,8,20,0.5) 40%, rgba(5,8,20,0.95) 100%), url('${game.bg}')`;
