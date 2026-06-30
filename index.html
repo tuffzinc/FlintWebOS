@@ -203,12 +203,28 @@ renderHomeGames(games) {
     const appRow = this.shadowRoot.getElementById('dynamic-app-row');
     if (!appRow) return;
 
-    const storeBtn = this.shadowRoot.getElementById('store-btn');
+    // Clear row first
     appRow.innerHTML = '';
-    if (storeBtn) appRow.appendChild(storeBtn);
 
-    const savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
-    const savedGames = games.filter(game => savedIds.includes(game.id));
+    // FIX #1: Dynamically create and append the Store Button directly in JS
+    const storeBtn = document.createElement('div');
+    storeBtn.className = 'app-icon store-btn system-btn';
+    storeBtn.id = 'store-btn';
+    storeBtn.innerHTML = `<i class="fas fa-bag-shopping"></i><span>Store</span>`;
+    storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
+    appRow.appendChild(storeBtn);
+
+    // Safe localStorage parsing
+    let savedIds = [];
+    try {
+        savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+        if (!Array.isArray(savedIds)) savedIds = [];
+    } catch (e) {
+        savedIds = [];
+    }
+
+    // Type-safe string comparison to prevent number/string mismatch bugs
+    const savedGames = games.filter(game => savedIds.some(id => String(id) === String(game.id)));
 
     savedGames.forEach((game) => {
         const icon = document.createElement('div');
@@ -224,7 +240,7 @@ renderHomeGames(games) {
 
     // Create and Append Library Icon Node with Event Listener
     const libraryIcon = document.createElement('div');
-    libraryIcon.className = 'app-icon library-icon';
+    libraryIcon.className = 'app-icon library-icon system-btn';
     libraryIcon.style.background = 'rgba(255,255,255,0.05)';
     libraryIcon.style.display = 'flex';
     libraryIcon.style.alignItems = 'center';
@@ -262,42 +278,61 @@ renderHomeGames(games) {
     }
 }
 
-            renderStoreGames(games) {
-                const storeGrid = this.shadowRoot.getElementById('dynamic-store-grid');
-                if (!storeGrid) return;
+renderStoreGames(games) {
+    const storeGrid = this.shadowRoot.getElementById('dynamic-store-grid');
+    if (!storeGrid) return;
 
-                storeGrid.innerHTML = '';
-                const savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+    storeGrid.innerHTML = '';
+    
+    let savedIds = [];
+    try {
+        savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+        if (!Array.isArray(savedIds)) savedIds = [];
+    } catch (e) {
+        savedIds = [];
+    }
 
-                games.forEach((game) => {
-                    const isSaved = savedIds.includes(game.id);
-                    const item = document.createElement('div');
-                    item.className = 'store-item';
-                    item.style.background = `linear-gradient(to top, rgba(3, 5, 10, 0.95) 20%, rgba(3, 5, 10, 0.2) 100%), url('${game.bg || game.image}') center/cover`;
-                    
-                    item.innerHTML = `
-                        <div class="store-item-details">
-                            <p class="item-title">${game.name}</p>
-                            <p class="item-price" style="${isSaved ? 'background: linear-gradient(135deg, #11998e, #38ef7d); border-color: transparent;' : ''}">
-                                <i class="${isSaved ? 'fas fa-check' : 'fas fa-download'}" style="font-size:11px; margin-right:6px;"></i> 
-                                ${isSaved ? 'Saved & Play' : 'Save Game'}
-                            </p>
-                        </div>
-                    `;
-                    
-                    item.onclick = () => {
-                        if (!isSaved) {
-                            savedIds.push(game.id);
-                            localStorage.setItem('flintos_saved', JSON.stringify(savedIds));
-                            this.renderStoreGames(games); 
-                        } else {
-                            this.launchIframeRuntime(game.file_src);
-                        }
-                    };
-                    
-                    storeGrid.appendChild(item);
-                });
+    games.forEach((game) => {
+        // Safe string-based matching for rendering initial states
+        const isSaved = savedIds.some(id => String(id) === String(game.id));
+        const item = document.createElement('div');
+        item.className = 'store-item';
+        item.style.background = `linear-gradient(to top, rgba(3, 5, 10, 0.95) 20%, rgba(3, 5, 10, 0.2) 100%), url('${game.bg || game.image}') center/cover`;
+        
+        item.innerHTML = `
+            <div class="store-item-details">
+                <p class="item-title">${game.name}</p>
+                <p class="item-price" style="${isSaved ? 'background: linear-gradient(135deg, #11998e, #38ef7d); border-color: transparent;' : ''}">
+                    <i class="${isSaved ? 'fas fa-check' : 'fas fa-download'}" style="font-size:11px; margin-right:6px;"></i> 
+                    ${isSaved ? 'Saved & Play' : 'Save Game'}
+                </p>
+            </div>
+        `;
+        
+        // FIX #2: Extract fresh localStorage list inside the click event to prevent stale arrays
+        item.onclick = () => {
+            let currentSavedIds = [];
+            try {
+                currentSavedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+                if (!Array.isArray(currentSavedIds)) currentSavedIds = [];
+            } catch (e) {
+                currentSavedIds = [];
             }
+
+            const alreadySaved = currentSavedIds.some(id => String(id) === String(game.id));
+
+            if (!alreadySaved) {
+                currentSavedIds.push(game.id);
+                localStorage.setItem('flintos_saved', JSON.stringify(currentSavedIds));
+                this.renderStoreGames(games); // Re-render instantly updates the store UI cards
+            } else {
+                this.launchIframeRuntime(game.file_src);
+            }
+        };
+        
+        storeGrid.appendChild(item);
+    });
+}
 
             renderLibraryGames(games) {
                 const libraryGrid = this.shadowRoot.getElementById('dynamic-library-grid');
