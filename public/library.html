@@ -1,42 +1,100 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
 <style>
-    .lib-screen {
-        height: 100%; background: #0b0b0b; padding: 40px 60px; box-sizing: border-box;
-        display: flex; flex-direction: column; animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    .store-screen {
+        height: 100%;
+        background: linear-gradient(135deg, #070913 0%, #000000 100%);
+        padding: 30px 50px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    .lib-header { display: flex; align-items: center; gap: 25px; margin-bottom: 35px; }
+    .store-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
     .back-btn {
-        background: rgba(255,255,255,0.1); border: none; color: white; width: 45px; height: 45px;
-        border-radius: 50%; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
         transition: all 0.2s;
     }
-    .back-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
-    
-    .lib-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px;
-        overflow-y: auto; padding-right: 15px; padding-bottom: 40px;
+    .back-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+    .store-title {
+        font-size: 1.8rem;
+        font-weight: 300;
+        margin: 0;
+        letter-spacing: 1px;
     }
-    .lib-grid::-webkit-scrollbar { width: 0; }
     
-    .lib-item {
-        aspect-ratio: 1 / 1; border-radius: 16px; background-size: cover; background-position: center;
-        position: relative; cursor: pointer; transition: all 0.3s;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid transparent;
+    .store-nav {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 15px;
     }
-    .lib-item:hover { transform: scale(1.05); border-color: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.6); }
+    .store-nav span { opacity: 0.6; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+    .store-nav span.active { opacity: 1; border-bottom: 2px solid #fff; padding-bottom: 16px; margin-bottom: -16px; }
+
+    .store-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .store-grid::-webkit-scrollbar { width: 0; }
     
-    .lib-overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 14px;
-        background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
-        opacity: 0; transition: opacity 0.2s; font-size: 2rem; color: #fff;
+    .store-item {
+        height: 280px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 15px;
+        transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        cursor: pointer;
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
+        background-repeat: no-repeat !important;
     }
-    .lib-item:hover .lib-overlay { opacity: 1; backdrop-filter: blur(2px); }
+    .store-item > * { position: relative; z-index: 2; }
+    .store-item:hover {
+        transform: translateY(-5px) scale(1.02);
+        border-color: #ffffff;
+        box-shadow: 0 10px 24px rgba(255, 255, 255, 0.1);
+    }
+    .item-title { margin: 0; font-size: 1.1rem; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    .item-price { color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem; background: #222531; padding: 5px 12px; border-radius: 6px; align-self: flex-start; display: flex; align-items: center; }
+    
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<div class="lib-screen">
-    <div class="lib-header">
+<div class="store-screen">
+    <div class="store-header">
         <button class="back-btn" id="back-btn"><i class="fas fa-arrow-left"></i></button>
-        <h2 style="font-size: 2rem; font-weight: 300; margin: 0;">Game Library</h2>
+        <h2 class="store-title">Your Collection</h2>
+    </div>
+    <div class="store-nav">
+        <span class="active">Installed Games</span>
+        <span>Applications</span>
     </div>
     
-    <div class="lib-grid" id="dynamic-library-grid"></div>
+    <div class="store-grid" id="dynamic-library-grid"></div>
 </div>
