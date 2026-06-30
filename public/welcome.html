@@ -5,43 +5,57 @@
         justify-content: center;
         align-items: center;
         height: 100%;
-        background: radial-gradient(circle at 50% 40%, #0c1832 0%, #000000 80%);
+        background: radial-gradient(circle at 50% 40%, #0f1c3f 0%, #03050a 80%);
         text-align: center;
-        animation: fadeIn 1.5s ease-out;
+        animation: welcomeFadeIn 1.2s ease-out;
+    }
+    @keyframes welcomeFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     .welcome-title {
-        font-size: 3.5rem;
+        font-size: 4rem;
         font-weight: 200;
         margin: 0;
-        letter-spacing: 2px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        background: linear-gradient(180deg, #ffffff 0%, #a3b8cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     .welcome-subtitle {
-        color: rgba(255,255,255,0.6);
-        font-size: 1.1rem;
-        margin: 15px 0 60px 0;
+        color: rgba(255,255,255,0.5);
+        font-size: 1.2rem;
+        margin: 20px 0 50px 0;
         font-weight: 400;
+        letter-spacing: 1px;
     }
     .ps-button {
-        background: transparent;
-        border: 2px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.15);
         color: #fff;
-        padding: 12px 40px;
+        padding: 16px 50px;
         border-radius: 50px;
-        font-size: 1.1rem;
+        font-size: 1.15rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s;
-        backdrop-filter: blur(4px);
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     .ps-button:hover {
-        background: rgba(255,255,255,0.1);
-        border-color: #fff;
-        box-shadow: 0 0 20px rgba(255,255,255,0.2);
-        transform: scale(1.05);
+        background: #ffffff;
+        color: #03050a;
+        border-color: #ffffff;
+        box-shadow: 0 0 30px rgba(255,255,255,0.25), 0 10px 20px rgba(0,0,0,0.4);
+        transform: translateY(-3px) scale(1.03);
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 <div class="welcome-screen">
-    <h1 class="welcome-title">Welcome to FlintOS</h1>
-    <p class="welcome-subtitle">Press the button to begin.</p>
-    <button class="ps-button" id="enter-home">Start</button>
+    <h1 class="welcome-title">FlintOS</h1>
+    <p class="welcome-subtitle">Experience the next generation of gaming inside of your browser.</p>
+    <button class="ps-button" id="enter-home">Get Started</button>
 </div>
