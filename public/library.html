@@ -5,7 +5,7 @@
 <style>
     .store-screen {
         height: 100%;
-        background: linear-gradient(135deg, #070913 0%, #000000 100%);
+        background: linear-gradient(135deg, #060913 0%, #000000 100%);
         padding: 30px 50px;
         box-sizing: border-box;
         display: flex;
@@ -49,6 +49,7 @@
         padding-bottom: 15px;
     }
     .store-nav span { opacity: 0.6; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+    .store-nav span:hover { opacity: 1; }
     .store-nav span.active { opacity: 1; border-bottom: 2px solid #fff; padding-bottom: 16px; margin-bottom: -16px; }
 
     .store-grid {
@@ -78,10 +79,10 @@
     .store-item:hover {
         transform: translateY(-5px) scale(1.02);
         border-color: #ffffff;
-        box-shadow: 0 10px 24px rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 24px rgba(255, 255, 255, 0.15);
     }
     .item-title { margin: 0; font-size: 1.1rem; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-    .item-price { color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem; background: #222531; padding: 5px 12px; border-radius: 6px; align-self: flex-start; display: flex; align-items: center; }
+    .item-price { color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem; background: #1e2230; border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; align-self: flex-start; display: flex; align-items: center; }
     
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -89,11 +90,11 @@
 <div class="store-screen">
     <div class="store-header">
         <button class="back-btn" id="back-btn"><i class="fas fa-arrow-left"></i></button>
-        <h2 class="store-title">Your Collection</h2>
+        <h2 class="store-title">Your Library</h2>
     </div>
     <div class="store-nav">
-        <span class="active">Installed Games</span>
-        <span>Applications</span>
+        <span class="active">Saved Apps</span>
+        <span>System Items</span>
     </div>
     
     <div class="store-grid" id="dynamic-library-grid"></div>
