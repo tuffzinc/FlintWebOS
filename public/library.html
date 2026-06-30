@@ -83,65 +83,54 @@
 
     .store-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 25px;
         overflow-y: auto;
-        padding-bottom: 20px;
+        padding: 10px 5px 30px 5px;
     }
     .store-grid::-webkit-scrollbar { width: 6px; }
     
+    /* Elegant Horizontal Widescreen Console Banner Cards */
     .store-item {
-        height: 320px;
-        border-radius: 18px;
+        height: 165px;
+        border-radius: 14px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        transition: all 0.35s cubic-bezier(0.15, 0.85, 0.2, 1);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
         cursor: pointer;
-        border: 1px solid rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
     .store-item:hover {
-        transform: translateY(-8px) scale(1.02);
-        border-color: #ffffff;
-        box-shadow: 0 15px 35px rgba(255, 255, 255, 0.15), 0 10px 20px rgba(0,0,0,0.5);
+        transform: translateY(-5px) scale(1.03);
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 12px 28px rgba(255, 255, 255, 0.12), 0 8px 16px rgba(0,0,0,0.6);
     }
     
     .store-item-details {
         position: relative;
         z-index: 2;
-        padding: 20px;
+        padding: 16px;
         width: 100%;
         box-sizing: border-box;
+        background: linear-gradient(to top, rgba(2, 3, 7, 0.95) 0%, rgba(2, 3, 7, 0.6) 60%, rgba(2, 3, 7, 0) 100%);
     }
     .item-title {
         margin: 0;
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         font-weight: 700;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.9);
-    }
-    .item-price {
-        color: #fff;
-        font-weight: 700;
-        margin-top: 12px;
-        font-size: 0.85rem;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255,255,255,0.12);
-        padding: 7px 16px;
-        border-radius: 20px;
-        display: inline-flex;
-        align-items: center;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .launch-badge {
-        background: linear-gradient(135deg, #1e3c72, #2a5298);
-        box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
-    }
-    .store-item:hover .launch-badge {
-        background: linear-gradient(135deg, #2a5298, #3a62a8);
+        color: #ffffff;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .empty-library-msg {
