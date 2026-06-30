@@ -1,52 +1,233 @@
 <style>
     .home-screen {
-        height: 100%; background-position: center center; background-size: cover;
-        display: flex; flex-direction: column; padding: 40px 60px; box-sizing: border-box;
-        animation: fadeIn 0.5s ease-out; transition: background-image 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        height: 100%;
+        background-position: center center;
+        background-size: cover;
+        display: flex;
+        flex-direction: column;
+        padding: 50px 70px;
+        box-sizing: border-box;
+        animation: dashboardFadeIn 0.6s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+        transition: background-image 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        background-image: linear-gradient(180deg, rgba(10,16,32,0.85) 0%, rgba(3,5,10,0.98) 100%);
     }
     
-    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-    .tabs { display: flex; gap: 30px; font-size: 1.2rem; }
-    .tabs span { opacity: 0.5; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-    .tabs span:hover { opacity: 0.8; }
-    .tabs span.active { opacity: 1; font-weight: bold; transform: scale(1.05); }
+    @keyframes dashboardFadeIn {
+        from { opacity: 0; transform: scale(1.01); }
+        to { opacity: 1; transform: scale(1); }
+    }
     
-    .status-icons { display: flex; gap: 24px; align-items: center; font-size: 1.2rem; opacity: 0.9; }
-    .status-icons i { cursor: pointer; transition: transform 0.2s; }
-    .status-icons i:hover { transform: scale(1.15); color: #fff; }
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 45px;
+    }
+    
+    .tabs {
+        display: flex;
+        gap: 35px;
+        font-size: 1.25rem;
+    }
+    
+    .tabs span {
+        opacity: 0.5;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        padding-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+    
+    .tabs span:hover {
+        opacity: 0.9;
+    }
+    
+    .tabs span.active {
+        opacity: 1;
+        font-weight: 700;
+    }
+    
+    .tabs span.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%; height: 3px;
+        background: #ffffff;
+        border-radius: 2px;
+        box-shadow: 0 0 10px #ffffff;
+    }
+    
+    .status-icons {
+        display: flex;
+        gap: 28px;
+        align-items: center;
+        font-size: 1.15rem;
+    }
+    
+    .status-icons i {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+    }
+    .status-icons i:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    
+    #current-time {
+        font-weight: 600;
+        letter-spacing: 1px;
+        opacity: 0.9;
+    }
 
-    .app-row { display: flex; gap: 15px; align-items: center; margin-bottom: 30px; min-height: 100px; }
-    .app-icon {
-        width: 65px; height: 65px; border-radius: 16px; background: rgba(255,255,255,0.1);
-        background-size: cover; background-position: center; backdrop-filter: blur(10px);
-        cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        border: 2px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    .app-row {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 40px;
+        min-height: 110px;
+        overflow-x: auto;
+        padding: 10px 5px;
     }
-    .app-icon:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.3); }
+    .app-row::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .app-icon {
+        width: 75px;
+        height: 75px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        cursor: pointer;
+        transition: all 0.35s cubic-bezier(0.15, 0.85, 0.2, 1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        flex-shrink: 0;
+        position: relative;
+    }
+    
+    .app-icon:hover {
+        transform: translateY(-6px);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    }
+    
     .app-icon.active {
-        width: 80px; height: 80px; border-color: #ffffff;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.6); transform: translateY(-5px);
+        width: 90px;
+        height: 90px;
+        border-color: #ffffff;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 15px 35px rgba(255, 255, 255, 0.15), 0 10px 30px rgba(0, 0, 0, 0.7);
+        transform: translateY(-6px);
     }
     
     .system-btn {
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        font-size: 12px; font-weight: bold; gap: 6px; letter-spacing: 0.5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
-    #store-btn { background: linear-gradient(135deg, #004e92, #000428); color: white; }
-    #library-btn { background: rgba(255,255,255,0.15); color: white; }
+    .system-btn i {
+        font-size: 20px;
+        opacity: 0.9;
+    }
+    .system-btn span {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        opacity: 0.8;
+    }
+    
+    .store-btn {
+        background: linear-gradient(135deg, #0052d4, #4364f7);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    .store-btn:hover {
+        background: linear-gradient(135deg, #0066ff, #5377ff);
+        box-shadow: 0 12px 30px rgba(67, 100, 247, 0.4);
+    }
 
-    .hero-container { margin-top: auto; padding-bottom: 20px; }
-    .hero-title { font-size: 3.5rem; margin: 0 0 10px 0; font-weight: 300; text-shadow: 0 4px 15px rgba(0,0,0,0.9); }
-    .hero-desc { font-size: 1.1rem; opacity: 0.8; max-width: 600px; line-height: 1.5; text-shadow: 0 2px 8px rgba(0,0,0,0.8); margin-bottom: 25px; }
+    .library-btn {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    .library-btn:hover {
+        background: linear-gradient(135deg, #34495e, #4aa3df);
+        box-shadow: 0 12px 30px rgba(52, 152, 219, 0.4);
+    }
+
+    .hero-container {
+        margin-top: auto;
+        padding-bottom: 30px;
+        max-width: 750px;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+        margin: 0 0 15px 0;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        line-height: 1.1;
+    }
+    
+    .hero-desc {
+        font-size: 1.2rem;
+        opacity: 0.75;
+        line-height: 1.6;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        margin-bottom: 35px;
+    }
     
     .action-btn {
-        background: #ffffff; color: #000000; border: none; padding: 14px 40px;
-        border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1.05rem;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.4); transition: all 0.2s; display: inline-flex; align-items: center; gap: 10px;
+        background: #ffffff;
+        color: #050814;
+        border: none;
+        padding: 16px 45px;
+        border-radius: 40px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 1.1rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: 0.5px;
     }
-    .action-btn:hover { transform: scale(1.03); background: #f0f0f0; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .action-btn:hover {
+        transform: translateY(-3px);
+        background: #f5f6fa;
+        box-shadow: 0 12px 30px rgba(255,255,255,0.2), 0 8px 25px rgba(0,0,0,0.6);
+    }
+    
+    .empty-state-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        padding: 35px;
+        border-radius: 24px;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .empty-state-card .hero-title {
+        font-size: 2.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .empty-state-card .hero-desc {
+        font-size: 1.05rem;
+        margin-bottom: 0;
+        opacity: 0.6;
+    }
 </style>
 
 <div class="home-screen" id="home-screen">
@@ -63,27 +244,20 @@
         </div>
     </div>
 
-    <div class="app-row" id="dynamic-app-row">
-        <div class="app-icon system-btn" id="library-btn">
-            <i class="fas fa-gamepad" style="font-size: 18px;"></i>
-            <span>Library</span>
-        </div>
-        <div class="app-icon system-btn" id="store-btn">
-            <i class="fas fa-bag-shopping" style="font-size: 18px;"></i>
-            <span>Store</span>
-        </div>
-    </div>
+    <div class="app-row" id="dynamic-app-row"></div>
 
     <div class="hero-container">
         <div id="hero-content" style="display: none;">
             <h1 class="hero-title" id="hero-title">Select a Game</h1>
             <p class="hero-desc" id="hero-desc">Choose a game from your recent list to start playing.</p>
-            <button class="action-btn" id="play-btn"><i class="fas fa-play"></i> Play</button>
+            <button class="action-btn" id="play-btn"><i class="fas fa-play"></i> Play Game</button>
         </div>
         
-        <div id="empty-state" style="display: none; max-width: 500px;">
-            <h1 class="hero-title" style="font-size: 2.5rem;">Welcome to FlintOS</h1>
-            <p class="hero-desc">You don't have any games installed yet. Visit the Store to discover and download games to your library.</p>
+        <div id="empty-state" style="display: none;">
+            <div class="empty-state-card">
+                <h1 class="hero-title">Welcome to FlintOS</h1>
+                <p class="hero-desc">Your library is currently empty. Open the <strong>Store</strong> panel above to add games directly to your system.</p>
+            </div>
         </div>
     </div>
 </div>
