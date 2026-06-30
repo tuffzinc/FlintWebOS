@@ -7,10 +7,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #000000; color: #ffffff;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; user-select: none; -webkit-user-select: none;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
         }
     </style>
 </head>
@@ -26,7 +32,7 @@
                 this.currentActiveFileSrc = '';
                 this.currentGameId = null;
                 this.lastRightCtrl = 0;
-                this.gamesDb = []; // Caches games data
+                this.gamesDb = []; // Local cache for system games
             }
 
             async connectedCallback() {
@@ -36,14 +42,22 @@
                         :host { display: block; width: 100vw; height: 100vh; }
                         #app-container { width: 100%; height: 100%; position: relative; }
                         
-                        /* In-Game Engine Overlay */
+                        /* Sandboxed Game Engine Player Overlay Styles */
                         #game-layer {
-                            display: none; position: fixed; top: 0; left: 0;
-                            width: 100vw; height: 100vh; z-index: 99999; background-color: #000000;
+                            display: none;
+                            position: fixed;
+                            top: 0; left: 0;
+                            width: 100vw; height: 100vh;
+                            z-index: 99999;
+                            background-color: #000000;
                         }
-                        #game-frame { width: 100%; height: 100%; border: none; background-color: #000000; }
+                        #game-frame {
+                            width: 100%; height: 100%;
+                            border: none;
+                            background-color: #000000;
+                        }
                         
-                        /* PS5 Style Quick Menu */
+                        /* PS5 Style Quick Menu Control Overlay */
                         #quick-menu-overlay {
                             display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
                             background: rgba(0,0,0,0.4); z-index: 100000;
@@ -65,13 +79,13 @@
                         .qm-btn:hover { opacity: 1; transform: scale(1.1); color: #fff; }
                         .qm-btn:hover i { text-shadow: 0 0 15px rgba(255,255,255,0.8); }
 
-                        /* Screenshot Flash */
+                        /* Flash feedback mechanics */
                         #screen-flash {
                             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                             background: white; z-index: 100001; pointer-events: none;
                         }
                         #toast {
-                            position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.8);
+                            position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.9);
                             padding: 15px 25px; border-radius: 12px; display: none; align-items: center; gap: 12px;
                             z-index: 100002; border-left: 4px solid #fff; font-weight: bold;
                         }
@@ -97,14 +111,21 @@
                 this.container = this.shadowRoot.getElementById('app-container');
                 this.setupGlobalHotkeys();
                 
-                // Bypass loading for testing, straight to home
-                const hasVisited = localStorage.getItem('flintos_visited');
-                this.loadView(hasVisited ? '/public/home.html' : '/public/welcome.html'); // Assuming you have a welcome.html
+                await this.loadView('/public/loading.html');
+                
+                setTimeout(() => {
+                    const hasVisited = localStorage.getItem('flintos_visited');
+                    if (!hasVisited) {
+                        this.loadView('/public/welcome.html');
+                    } else {
+                        this.loadView('/public/home.html');
+                    }
+                }, 2200);
             }
 
             setupGlobalHotkeys() {
                 window.addEventListener('keydown', (e) => {
-                    if (e.key === 'Control' && e.location === 2) { // Right Control
+                    if (e.key === 'Control' && e.location === 2) { // Right Control Key
                         const now = Date.now();
                         const gameLayer = this.shadowRoot.getElementById('game-layer');
                         if (now - this.lastRightCtrl < 400 && gameLayer.style.display === 'block') {
@@ -114,17 +135,30 @@
                     }
                 });
 
-                // Quick Menu Handlers
+                // HUD Panel Event Listeners
                 this.shadowRoot.getElementById('qm-resume').onclick = () => this.toggleQuickMenu(false);
                 this.shadowRoot.getElementById('qm-close').onclick = () => {
                     this.toggleQuickMenu(false);
-                    this.shadowRoot.getElementById('game-frame').src = 'about:blank';
-                    this.shadowRoot.getElementById('game-layer').style.display = 'none';
-                    this.loadView('/public/home.html'); // Refresh home to show recent
+                    const gameLayer = this.shadowRoot.getElementById('game-layer');
+                    const gameFrame = this.shadowRoot.getElementById('game-frame');
+                    if (gameLayer && gameFrame) {
+                        gameFrame.src = 'about:blank';
+                        gameLayer.style.display = 'none';
+                        this.loadView('/public/home.html'); // Bounce back home to update timeline order
+                    }
                 };
                 this.shadowRoot.getElementById('qm-screenshot').onclick = () => {
                     this.toggleQuickMenu(false);
-                    this.takeMockScreenshot();
+                    const flash = this.shadowRoot.getElementById('screen-flash');
+                    const toast = this.shadowRoot.getElementById('toast');
+                    flash.style.display = 'block'; flash.style.opacity = '1';
+                    let fade = 1;
+                    const fadeOut = setInterval(() => {
+                        fade -= 0.1; flash.style.opacity = fade;
+                        if (fade <= 0) { clearInterval(fadeOut); flash.style.display = 'none'; }
+                    }, 30);
+                    toast.style.display = 'flex';
+                    setTimeout(() => { toast.style.display = 'none'; }, 2500);
                 };
             }
 
@@ -134,46 +168,35 @@
                 menu.style.display = (forceState !== undefined) ? (forceState ? 'flex' : 'none') : (isShowing ? 'none' : 'flex');
             }
 
-            takeMockScreenshot() {
-                const flash = this.shadowRoot.getElementById('screen-flash');
-                const toast = this.shadowRoot.getElementById('toast');
-                flash.style.display = 'block';
-                flash.style.opacity = '1';
-                
-                let fade = 1;
-                const fadeOut = setInterval(() => {
-                    fade -= 0.1; flash.style.opacity = fade;
-                    if (fade <= 0) { clearInterval(fadeOut); flash.style.display = 'none'; }
-                }, 30);
-
-                toast.style.display = 'flex';
-                setTimeout(() => { toast.style.display = 'none'; }, 3000);
-            }
-
             async loadView(filename) {
                 try {
-                    // Fallback to home if file doesn't exist to prevent crashes during dev
-                    const response = await fetch(filename).catch(() => null);
-                    if (!response || !response.ok) throw new Error(`Failed to load ${filename}`);
+                    const response = await fetch(filename);
+                    if (!response.ok) throw new Error(`Failed to load ${filename}`);
                     const html = await response.text();
                     this.container.innerHTML = html;
                     this.bindEvents(filename);
                 } catch (err) {
                     console.error("FlintOS Core Error loading view:", err);
-                    if (filename !== '/public/home.html') this.loadView('/public/home.html');
                 }
             }
 
             bindEvents(currentView) {
-                const navMap = {
-                    'store-btn': '/public/store.html',
-                    'library-btn': '/public/library.html',
-                    'back-btn': '/public/home.html'
-                };
+                const enterBtn = this.shadowRoot.getElementById('enter-home');
+                if (enterBtn) {
+                    enterBtn.addEventListener('click', () => {
+                        localStorage.setItem('flintos_visited', 'true');
+                        this.loadView('/public/home.html');
+                    });
+                }
 
-                for (const [id, path] of Object.entries(navMap)) {
-                    const btn = this.shadowRoot.getElementById(id);
-                    if (btn) btn.addEventListener('click', () => this.loadView(path));
+                const storeBtn = this.shadowRoot.getElementById('store-btn');
+                if (storeBtn) {
+                    storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
+                }
+
+                const backBtn = this.shadowRoot.getElementById('back-btn');
+                if (backBtn) {
+                    backBtn.addEventListener('click', () => this.loadView('/public/home.html'));
                 }
 
                 const playBtn = this.shadowRoot.getElementById('play-btn');
@@ -181,163 +204,191 @@
                     playBtn.addEventListener('click', () => {
                         if (this.currentActiveFileSrc) {
                             this.launchIframeRuntime(this.currentActiveFileSrc, this.currentGameId);
+                        } else {
+                            alert("FlintOS Error: No execution sequence target loaded.");
                         }
                     });
                 }
                 
                 const timeEl = this.shadowRoot.getElementById('current-time');
                 if (timeEl) {
-                    const updateTime = () => { timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
-                    updateTime(); setInterval(updateTime, 60000);
+                    const updateTime = () => {
+                        const now = new Date();
+                        timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    };
+                    updateTime();
                 }
 
-                this.loadGamesData(currentView.split('/').pop().replace('.html', ''));
+                if (currentView === '/public/home.html') {
+                    this.loadGamesData('home');
+                } else if (currentView === '/public/store.html') {
+                    this.loadGamesData('store');
+                } else if (currentView === '/public/library.html') {
+                    this.loadGamesData('library');
+                }
             }
 
             async loadGamesData(targetLayer) {
-                if (this.gamesDb.length === 0) {
-                    try {
+                try {
+                    if (this.gamesDb.length === 0) {
                         const response = await fetch('/data/games.json');
                         this.gamesDb = await response.json();
-                    } catch (error) {
-                        console.warn("Using fallback games data.");
-                        this.gamesDb = [
-                            { id: 'g1', name: 'Neon Rider', description: 'Synthwave racing experience.', bg: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1080', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200', file_src: 'about:blank' },
-                            { id: 'g2', name: 'Space Explorer', description: 'Traverse the deep unknown.', bg: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=1080', image: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=200', file_src: 'about:blank' }
-                        ];
                     }
+                    
+                    const installedIds = JSON.parse(localStorage.getItem('flintos_installed')) || [];
+                    const recentIds = JSON.parse(localStorage.getItem('flintos_recent')) || [];
+
+                    if (targetLayer === 'home') {
+                        this.renderHomeGames(this.gamesDb, installedIds, recentIds);
+                    } else if (targetLayer === 'store') {
+                        this.renderStoreGames(this.gamesDb, installedIds);
+                    } else if (targetLayer === 'library') {
+                        this.renderLibraryGames(this.gamesDb, installedIds);
+                    }
+                } catch (error) {
+                    console.error("FlintOS FileSystem Error reading games.json:", error);
                 }
-
-                const installedIds = JSON.parse(localStorage.getItem('flintos_installed')) || [];
-                const recentIds = JSON.parse(localStorage.getItem('flintos_recent')) || [];
-
-                if (targetLayer === 'home') this.renderHomeGames(installedIds, recentIds);
-                else if (targetLayer === 'store') this.renderStoreGames(installedIds);
-                else if (targetLayer === 'library') this.renderLibraryGames(installedIds);
             }
 
-            // --- UI Rendering ---
-
-            renderHomeGames(installedIds, recentIds) {
+            renderHomeGames(games, installedIds, recentIds) {
                 const appRow = this.shadowRoot.getElementById('dynamic-app-row');
                 if (!appRow) return;
-                
-                // Clear existing games (keep store/library static buttons)
-                const staticBtns = Array.from(appRow.children).filter(c => c.id === 'store-btn' || c.id === 'library-btn');
-                appRow.innerHTML = '';
-                staticBtns.forEach(btn => appRow.appendChild(btn));
 
-                // Sort games based on recent activity, fallback to installed
-                let displayGames = [];
+                appRow.innerHTML = '';
+                
+                // 1. Setup Static Store Anchor Button
+                const storeBtn = document.createElement('div');
+                storeBtn.className = 'app-icon store-btn';
+                storeBtn.id = 'store-btn';
+                storeBtn.innerHTML = `<i class="fas fa-bag-shopping" style="font-size: 16px;"></i><span>Store</span>`;
+                storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
+                appRow.appendChild(storeBtn);
+
+                // 2. Filter down into user saved/installed applications ordered by timeline usage
+                let orderedGames = [];
                 recentIds.forEach(id => {
-                    const game = this.gamesDb.find(g => g.id === id);
-                    if (game && installedIds.includes(game.id)) displayGames.push(game);
+                    const match = games.find(g => g.id === id && installedIds.includes(g.id));
+                    if (match) orderedGames.push(match);
                 });
                 
-                // If nothing recently played, show installed. If none installed, show empty state.
-                if (displayGames.length === 0) {
-                    displayGames = this.gamesDb.filter(g => installedIds.includes(g.id));
-                }
+                // Fallback catch: Append installed games not tracked in usage lists yet
+                games.forEach(g => {
+                    if (installedIds.includes(g.id) && !orderedGames.some(og => og.id === g.id)) {
+                        orderedGames.push(g);
+                    }
+                });
 
-                displayGames.forEach((game) => {
+                // Render out matching app tile nodes
+                orderedGames.forEach((game) => {
                     const icon = document.createElement('div');
                     icon.className = 'app-icon';
                     icon.style.backgroundImage = `url('${game.image}')`;
+                    icon.style.backgroundSize = 'cover';
+                    icon.style.backgroundPosition = 'center';
+                    icon.style.backgroundRepeat = 'no-repeat';
+                    
                     icon.addEventListener('click', () => this.updateDashboardHero(game, icon));
-                    appRow.insertBefore(icon, appRow.firstChild); // Prepend to show most recent first
+                    appRow.appendChild(icon);
                 });
 
-                if (displayGames.length > 0) {
-                    this.updateDashboardHero(displayGames[0], appRow.firstChild);
-                    this.shadowRoot.getElementById('empty-state').style.display = 'none';
-                    this.shadowRoot.getElementById('hero-content').style.display = 'block';
+                // 3. Setup Static Library Anchor Button
+                const libraryIcon = document.createElement('div');
+                libraryIcon.className = 'app-icon library-icon';
+                libraryIcon.style.background = 'rgba(255,255,255,0.05)';
+                libraryIcon.style.display = 'flex';
+                libraryIcon.style.alignItems = 'center';
+                libraryIcon.style.justifyContent = 'center';
+                libraryIcon.style.fontSize = '11px';
+                libraryIcon.style.color = 'rgba(255,255,255,0.6)';
+                libraryIcon.innerHTML = `<i class="fas fa-layer-group" style="margin-bottom:4px; font-size:14px; display:block; text-align:center;"></i><span>Library</span>`;
+                libraryIcon.style.flexDirection = 'column';
+                libraryIcon.addEventListener('click', () => this.loadView('/public/library.html'));
+                appRow.appendChild(libraryIcon);
+
+                if (orderedGames.length > 0) {
+                    const firstGameIcon = appRow.querySelector('.app-icon:not(.store-btn):not(.library-icon)');
+                    if (firstGameIcon) {
+                        this.updateDashboardHero(orderedGames[0], firstGameIcon);
+                    }
                 } else {
-                    this.shadowRoot.getElementById('empty-state').style.display = 'block';
-                    this.shadowRoot.getElementById('hero-content').style.display = 'none';
-                    const screen = this.shadowRoot.getElementById('home-screen');
-                    screen.style.backgroundImage = `radial-gradient(circle at top right, #001f4d, #000000)`;
+                    // Empty System State Fallback Screen
+                    const title = this.shadowRoot.getElementById('hero-title');
+                    const desc = this.shadowRoot.getElementById('hero-desc');
+                    if (title) title.textContent = "Welcome to FlintOS";
+                    if (desc) desc.textContent = "Your dashboard is currently clear. Head over to the Store launcher tile above to install applications directly onto your system environment.";
                 }
             }
 
-            renderStoreGames(installedIds) {
+            renderStoreGames(games, installedIds) {
                 const storeGrid = this.shadowRoot.getElementById('dynamic-store-grid');
                 if (!storeGrid) return;
+
                 storeGrid.innerHTML = '';
 
-                this.gamesDb.forEach((game) => {
+                games.forEach((game) => {
                     const isInstalled = installedIds.includes(game.id);
                     const item = document.createElement('div');
                     item.className = 'store-item';
-                    item.style.background = `linear-gradient(to top, rgba(0,0,0,0.95) 10%, rgba(0,0,0,0.1) 100%), url('${game.bg || game.image}') center/cover`;
+                    
+                    // FIXED: Appending "no-repeat" to prevent fractional sub-pixel background leak line glitches
+                    item.style.background = `linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.15) 100%), url('${game.bg || game.image}') center / cover no-repeat`;
                     
                     item.innerHTML = `
-                        <div class="item-content">
-                            <p class="item-title">${game.name}</p>
-                            <button class="install-btn ${isInstalled ? 'installed' : ''}">
-                                ${isInstalled ? '<i class="fas fa-check"></i> In Library' : '<i class="fas fa-download"></i> Install'}
-                            </button>
-                        </div>
+                        <p class="item-title">${game.name}</p>
+                        <p class="item-price" style="${isInstalled ? 'background:#3a3a44;' : ''}">
+                            <i class="${isInstalled ? 'fas fa-check' : 'fas fa-download'}" style="font-size:10px; margin-right:5px;"></i> 
+                            ${isInstalled ? 'Saved' : 'Save Game'}
+                        </p>
                     `;
                     
-                    const btn = item.querySelector('.install-btn');
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (!isInstalled) this.installGame(game.id, btn);
+                    item.addEventListener('click', () => {
+                        if (!isInstalled) {
+                            let installed = JSON.parse(localStorage.getItem('flintos_installed')) || [];
+                            if (!installed.includes(game.id)) {
+                                installed.push(game.id);
+                                localStorage.setItem('flintos_installed', JSON.stringify(installed));
+                            }
+                            this.trackRecentUsage(game.id);
+                            this.loadView('/public/store.html'); // Refresh layer state values instantly
+                        } else {
+                            this.launchIframeRuntime(game.file_src, game.id);
+                        }
                     });
                     
                     storeGrid.appendChild(item);
                 });
             }
 
-            renderLibraryGames(installedIds) {
+            renderLibraryGames(games, installedIds) {
                 const libraryGrid = this.shadowRoot.getElementById('dynamic-library-grid');
                 if (!libraryGrid) return;
                 libraryGrid.innerHTML = '';
 
-                const installedGames = this.gamesDb.filter(g => installedIds.includes(g.id));
-                
-                if (installedGames.length === 0) {
-                    libraryGrid.innerHTML = `<h3 style="opacity: 0.5; width: 100%; grid-column: 1 / -1; text-align: center; margin-top: 50px;">Your library is empty. Visit the store!</h3>`;
+                const savedGames = games.filter(game => installedIds.includes(game.id));
+
+                if (savedGames.length === 0) {
+                    libraryGrid.innerHTML = `<p style="opacity:0.5; grid-column: 1 / -1; text-align:center; padding: 40px;">No saved games found. Add software from the FlintOS Store layout panels.</p>`;
                     return;
                 }
 
-                installedGames.forEach((game) => {
+                savedGames.forEach((game) => {
                     const item = document.createElement('div');
-                    item.className = 'lib-item';
-                    item.style.backgroundImage = `url('${game.image}')`;
-                    item.innerHTML = `<div class="lib-overlay"><i class="fas fa-play"></i></div>`;
-                    item.addEventListener('click', () => this.launchIframeRuntime(game.file_src, game.id));
+                    item.className = 'store-item';
+                    item.style.background = `linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.15) 100%), url('${game.bg || game.image}') center / cover no-repeat`;
+                    item.innerHTML = `
+                        <p class="item-title">${game.name}</p>
+                        <p class="item-price"><i class="fas fa-gamepad" style="font-size:10px; margin-right:5px;"></i> Launch</p>
+                    `;
+                    item.addEventListener('click', () => {
+                        this.launchIframeRuntime(game.file_src, game.id);
+                    });
                     libraryGrid.appendChild(item);
                 });
             }
 
-            // --- System Actions ---
-
-            installGame(gameId, buttonElement) {
-                let installed = JSON.parse(localStorage.getItem('flintos_installed')) || [];
-                if (!installed.includes(gameId)) {
-                    installed.push(gameId);
-                    localStorage.setItem('flintos_installed', JSON.stringify(installed));
-                    
-                    // Add to recents so it pops up on home screen
-                    this.updateRecentGames(gameId);
-                    
-                    buttonElement.innerHTML = '<i class="fas fa-check"></i> In Library';
-                    buttonElement.classList.add('installed');
-                }
-            }
-
-            updateRecentGames(gameId) {
-                let recent = JSON.parse(localStorage.getItem('flintos_recent')) || [];
-                recent = recent.filter(id => id !== gameId); // Remove if exists
-                recent.unshift(gameId); // Add to front
-                if (recent.length > 10) recent.pop(); // Keep max 10
-                localStorage.setItem('flintos_recent', JSON.stringify(recent));
-            }
-
             updateDashboardHero(game, selectedIcon) {
                 this.shadowRoot.querySelectorAll('.app-icon').forEach(el => el.classList.remove('active'));
-                if (selectedIcon) selectedIcon.classList.add('active');
+                selectedIcon.classList.add('active');
 
                 this.currentActiveFileSrc = game.file_src;
                 this.currentGameId = game.id;
@@ -346,13 +397,23 @@
                 const title = this.shadowRoot.getElementById('hero-title');
                 const desc = this.shadowRoot.getElementById('hero-desc');
 
-                if (screen) screen.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 40%, #000000 100%), url('${game.bg}')`;
+                if (screen) {
+                    screen.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.9) 100%), url('${game.bg}')`;
+                }
                 if (title) title.textContent = game.name;
                 if (desc) desc.textContent = game.description;
             }
 
+            trackRecentUsage(gameId) {
+                let recents = JSON.parse(localStorage.getItem('flintos_recent')) || [];
+                recents = recents.filter(id => id !== gameId); // Strip pre-existing positions
+                recents.unshift(gameId); // Push into index position 0
+                if(recents.length > 12) recents.pop();
+                localStorage.setItem('flintos_recent', JSON.stringify(recents));
+            }
+
             launchIframeRuntime(sourceUrl, gameId) {
-                if (gameId) this.updateRecentGames(gameId);
+                if (gameId) this.trackRecentUsage(gameId);
                 const gameLayer = this.shadowRoot.getElementById('game-layer');
                 const gameFrame = this.shadowRoot.getElementById('game-frame');
                 if (gameLayer && gameFrame) {
