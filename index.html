@@ -7,16 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000000;
-            color: #ffffff;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000000; color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
+            overflow: hidden; user-select: none; -webkit-user-select: none;
         }
     </style>
 </head>
@@ -30,6 +24,9 @@
                 super();
                 this.attachShadow({ mode: 'open' });
                 this.currentActiveFileSrc = '';
+                this.currentGameId = null;
+                this.lastRightCtrl = 0;
+                this.gamesDb = []; // Caches games data
             }
 
             async connectedCallback() {
@@ -39,242 +36,323 @@
                         :host { display: block; width: 100vw; height: 100vh; }
                         #app-container { width: 100%; height: 100%; position: relative; }
                         
-                        /* Sandboxed Game Engine Player Overlay Styles */
+                        /* In-Game Engine Overlay */
                         #game-layer {
-                            display: none;
-                            position: fixed;
-                            top: 0; left: 0;
-                            width: 100vw; height: 100vh;
-                            z-index: 99999;
-                            background-color: #000000;
+                            display: none; position: fixed; top: 0; left: 0;
+                            width: 100vw; height: 100vh; z-index: 99999; background-color: #000000;
                         }
-                        #game-frame {
-                            width: 100%; height: 100%;
-                            border: none;
-                            background-color: #000000;
+                        #game-frame { width: 100%; height: 100%; border: none; background-color: #000000; }
+                        
+                        /* PS5 Style Quick Menu */
+                        #quick-menu-overlay {
+                            display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+                            background: rgba(0,0,0,0.4); z-index: 100000;
+                            justify-content: center; align-items: flex-end; padding-bottom: 40px;
                         }
-                        #close-game-btn {
-position: absolute;
-    top: 20px; 
-    right: 20px;
-    background: rgba(20, 20, 25, 0.6); /* Slightly darker, more subtle transparency */
-    color: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    
-    padding: 6px 14px;                
-    border-radius: 8px;              
-    font-size: 0.8rem;                
-    font-weight: 500;       
-    
-    cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100000;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+                        .ps5-quick-menu {
+                            display: flex; gap: 30px; background: rgba(20, 20, 25, 0.85);
+                            padding: 20px 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+                            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                            animation: slideUpMenu 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
                         }
-                        #close-game-btn:hover {
-                            background: rgba(255, 255, 255, 0.95);
-                            color: #000000;
-                            border-color: #ffffff;
-                            transform: scale(1.04);
+                        .qm-btn {
+                            background: transparent; border: none; color: white;
+                            display: flex; flex-direction: column; align-items: center; gap: 10px;
+                            cursor: pointer; opacity: 0.6; transition: all 0.2s; font-size: 0.85rem; font-weight: 500;
                         }
+                        .qm-btn i { font-size: 1.5rem; margin-bottom: 4px; }
+                        .qm-btn:hover { opacity: 1; transform: scale(1.1); color: #fff; }
+                        .qm-btn:hover i { text-shadow: 0 0 15px rgba(255,255,255,0.8); }
+
+                        /* Screenshot Flash */
+                        #screen-flash {
+                            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            background: white; z-index: 100001; pointer-events: none;
+                        }
+                        #toast {
+                            position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.8);
+                            padding: 15px 25px; border-radius: 12px; display: none; align-items: center; gap: 12px;
+                            z-index: 100002; border-left: 4px solid #fff; font-weight: bold;
+                        }
+
+                        @keyframes slideUpMenu { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
                     </style>
                     
                     <div id="app-container"></div>
                     
                     <div id="game-layer">
-                        <button id="close-game-btn"><i class="fas fa-xmark"></i> Close Game</button>
                         <iframe id="game-frame" src="about:blank"></iframe>
+                        <div id="quick-menu-overlay">
+                            <div class="ps5-quick-menu">
+                                <button class="qm-btn" id="qm-resume"><i class="fas fa-play"></i> Resume</button>
+                                <button class="qm-btn" id="qm-screenshot"><i class="fas fa-camera"></i> Screenshot</button>
+                                <button class="qm-btn" id="qm-close" style="color: #ff4d4d;"><i class="fas fa-power-off"></i> Close Game</button>
+                            </div>
+                        </div>
                     </div>
+                    <div id="screen-flash"></div>
+                    <div id="toast"><i class="fas fa-image"></i> Screenshot Saved</div>
                 `;
                 this.container = this.shadowRoot.getElementById('app-container');
+                this.setupGlobalHotkeys();
                 
-                await this.loadView('/public/loading.html');
-                
-                setTimeout(() => {
-                    const hasVisited = localStorage.getItem('flintos_visited');
-                    if (!hasVisited) {
-                        this.loadView('/public/welcome.html');
-                    } else {
-                        this.loadView('/public/home.html');
+                // Bypass loading for testing, straight to home
+                const hasVisited = localStorage.getItem('flintos_visited');
+                this.loadView(hasVisited ? '/public/home.html' : '/public/welcome.html'); // Assuming you have a welcome.html
+            }
+
+            setupGlobalHotkeys() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Control' && e.location === 2) { // Right Control
+                        const now = Date.now();
+                        const gameLayer = this.shadowRoot.getElementById('game-layer');
+                        if (now - this.lastRightCtrl < 400 && gameLayer.style.display === 'block') {
+                            this.toggleQuickMenu();
+                        }
+                        this.lastRightCtrl = now;
                     }
-                }, 2200);
+                });
+
+                // Quick Menu Handlers
+                this.shadowRoot.getElementById('qm-resume').onclick = () => this.toggleQuickMenu(false);
+                this.shadowRoot.getElementById('qm-close').onclick = () => {
+                    this.toggleQuickMenu(false);
+                    this.shadowRoot.getElementById('game-frame').src = 'about:blank';
+                    this.shadowRoot.getElementById('game-layer').style.display = 'none';
+                    this.loadView('/public/home.html'); // Refresh home to show recent
+                };
+                this.shadowRoot.getElementById('qm-screenshot').onclick = () => {
+                    this.toggleQuickMenu(false);
+                    this.takeMockScreenshot();
+                };
+            }
+
+            toggleQuickMenu(forceState) {
+                const menu = this.shadowRoot.getElementById('quick-menu-overlay');
+                const isShowing = menu.style.display === 'flex';
+                menu.style.display = (forceState !== undefined) ? (forceState ? 'flex' : 'none') : (isShowing ? 'none' : 'flex');
+            }
+
+            takeMockScreenshot() {
+                const flash = this.shadowRoot.getElementById('screen-flash');
+                const toast = this.shadowRoot.getElementById('toast');
+                flash.style.display = 'block';
+                flash.style.opacity = '1';
+                
+                let fade = 1;
+                const fadeOut = setInterval(() => {
+                    fade -= 0.1; flash.style.opacity = fade;
+                    if (fade <= 0) { clearInterval(fadeOut); flash.style.display = 'none'; }
+                }, 30);
+
+                toast.style.display = 'flex';
+                setTimeout(() => { toast.style.display = 'none'; }, 3000);
             }
 
             async loadView(filename) {
                 try {
-                    const response = await fetch(filename);
-                    if (!response.ok) throw new Error(`Failed to load ${filename}`);
+                    // Fallback to home if file doesn't exist to prevent crashes during dev
+                    const response = await fetch(filename).catch(() => null);
+                    if (!response || !response.ok) throw new Error(`Failed to load ${filename}`);
                     const html = await response.text();
                     this.container.innerHTML = html;
                     this.bindEvents(filename);
                 } catch (err) {
                     console.error("FlintOS Core Error loading view:", err);
+                    if (filename !== '/public/home.html') this.loadView('/public/home.html');
                 }
             }
 
             bindEvents(currentView) {
-                // Main Iframe Runtime Subsystem Control Hooks
-                const closeGameBtn = this.shadowRoot.getElementById('close-game-btn');
-                if (closeGameBtn) {
-                    closeGameBtn.onclick = () => {
-                        const gameLayer = this.shadowRoot.getElementById('game-layer');
-                        const gameFrame = this.shadowRoot.getElementById('game-frame');
-                        if (gameLayer && gameFrame) {
-                            gameFrame.src = 'about:blank'; // Teardown execution container
-                            gameLayer.style.display = 'none';
-                        }
-                    };
+                const navMap = {
+                    'store-btn': '/public/store.html',
+                    'library-btn': '/public/library.html',
+                    'back-btn': '/public/home.html'
+                };
+
+                for (const [id, path] of Object.entries(navMap)) {
+                    const btn = this.shadowRoot.getElementById(id);
+                    if (btn) btn.addEventListener('click', () => this.loadView(path));
                 }
 
-                const enterBtn = this.shadowRoot.getElementById('enter-home');
-                if (enterBtn) {
-                    enterBtn.addEventListener('click', () => {
-                        localStorage.setItem('flintos_visited', 'true');
-                        this.loadView('/public/home.html');
-                    });
-                }
-
-                const storeBtn = this.shadowRoot.getElementById('store-btn');
-                if (storeBtn) {
-                    storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
-                }
-
-                const backBtn = this.shadowRoot.getElementById('back-btn');
-                if (backBtn) {
-                    backBtn.addEventListener('click', () => this.loadView('/public/home.html'));
-                }
-
-                // Run Active App Launcher Process
                 const playBtn = this.shadowRoot.getElementById('play-btn');
                 if (playBtn) {
                     playBtn.addEventListener('click', () => {
                         if (this.currentActiveFileSrc) {
-                            this.launchIframeRuntime(this.currentActiveFileSrc);
-                        } else {
-                            alert("FlintOS Error: No execution sequence target loaded.");
+                            this.launchIframeRuntime(this.currentActiveFileSrc, this.currentGameId);
                         }
                     });
                 }
                 
                 const timeEl = this.shadowRoot.getElementById('current-time');
                 if (timeEl) {
-                    const updateTime = () => {
-                        const now = new Date();
-                        timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    };
-                    updateTime();
+                    const updateTime = () => { timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+                    updateTime(); setInterval(updateTime, 60000);
                 }
 
-                if (currentView === '/public/home.html') {
-                    this.loadGamesData('home');
-                } else if (currentView === '/public/store.html') {
-                    this.loadGamesData('store');
-                }
+                this.loadGamesData(currentView.split('/').pop().replace('.html', ''));
             }
 
             async loadGamesData(targetLayer) {
-                try {
-                    const response = await fetch('/data/games.json');
-                    const games = await response.json();
-                    if (targetLayer === 'home') {
-                        this.renderHomeGames(games);
-                    } else if (targetLayer === 'store') {
-                        this.renderStoreGames(games);
+                if (this.gamesDb.length === 0) {
+                    try {
+                        const response = await fetch('/data/games.json');
+                        this.gamesDb = await response.json();
+                    } catch (error) {
+                        console.warn("Using fallback games data.");
+                        this.gamesDb = [
+                            { id: 'g1', name: 'Neon Rider', description: 'Synthwave racing experience.', bg: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1080', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200', file_src: 'about:blank' },
+                            { id: 'g2', name: 'Space Explorer', description: 'Traverse the deep unknown.', bg: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=1080', image: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=200', file_src: 'about:blank' }
+                        ];
                     }
-                } catch (error) {
-                    console.error("FlintOS FileSystem Error reading games.json:", error);
                 }
+
+                const installedIds = JSON.parse(localStorage.getItem('flintos_installed')) || [];
+                const recentIds = JSON.parse(localStorage.getItem('flintos_recent')) || [];
+
+                if (targetLayer === 'home') this.renderHomeGames(installedIds, recentIds);
+                else if (targetLayer === 'store') this.renderStoreGames(installedIds);
+                else if (targetLayer === 'library') this.renderLibraryGames(installedIds);
             }
 
-            renderHomeGames(games) {
+            // --- UI Rendering ---
+
+            renderHomeGames(installedIds, recentIds) {
                 const appRow = this.shadowRoot.getElementById('dynamic-app-row');
                 if (!appRow) return;
-
-                const storeBtn = this.shadowRoot.getElementById('store-btn');
+                
+                // Clear existing games (keep store/library static buttons)
+                const staticBtns = Array.from(appRow.children).filter(c => c.id === 'store-btn' || c.id === 'library-btn');
                 appRow.innerHTML = '';
-                if (storeBtn) appRow.appendChild(storeBtn);
+                staticBtns.forEach(btn => appRow.appendChild(btn));
 
-                const featuredGames = games.filter(game => game.featured === true);
+                // Sort games based on recent activity, fallback to installed
+                let displayGames = [];
+                recentIds.forEach(id => {
+                    const game = this.gamesDb.find(g => g.id === id);
+                    if (game && installedIds.includes(game.id)) displayGames.push(game);
+                });
+                
+                // If nothing recently played, show installed. If none installed, show empty state.
+                if (displayGames.length === 0) {
+                    displayGames = this.gamesDb.filter(g => installedIds.includes(g.id));
+                }
 
-                featuredGames.forEach((game) => {
+                displayGames.forEach((game) => {
                     const icon = document.createElement('div');
                     icon.className = 'app-icon';
                     icon.style.backgroundImage = `url('${game.image}')`;
-                    icon.style.backgroundSize = 'cover';
-                    icon.style.backgroundPosition = 'center';
-                    icon.style.backgroundRepeat = 'no-repeat';
-                    
                     icon.addEventListener('click', () => this.updateDashboardHero(game, icon));
-                    appRow.appendChild(icon);
+                    appRow.insertBefore(icon, appRow.firstChild); // Prepend to show most recent first
                 });
 
-                if (featuredGames.length > 0) {
-                    const firstGameIcon = appRow.querySelector('.app-icon:not(.store-btn)');
-                    if (firstGameIcon) {
-                        this.updateDashboardHero(featuredGames[0], firstGameIcon);
-                    }
+                if (displayGames.length > 0) {
+                    this.updateDashboardHero(displayGames[0], appRow.firstChild);
+                    this.shadowRoot.getElementById('empty-state').style.display = 'none';
+                    this.shadowRoot.getElementById('hero-content').style.display = 'block';
+                } else {
+                    this.shadowRoot.getElementById('empty-state').style.display = 'block';
+                    this.shadowRoot.getElementById('hero-content').style.display = 'none';
+                    const screen = this.shadowRoot.getElementById('home-screen');
+                    screen.style.backgroundImage = `radial-gradient(circle at top right, #001f4d, #000000)`;
                 }
-
-                const libraryIcon = document.createElement('div');
-                libraryIcon.className = 'app-icon library-icon';
-                libraryIcon.style.background = 'rgba(255,255,255,0.05)';
-                libraryIcon.style.display = 'flex';
-                libraryIcon.style.alignItems = 'center';
-                libraryIcon.style.justifyContent = 'center';
-                libraryIcon.style.fontSize = '11px';
-                libraryIcon.style.color = 'rgba(255,255,255,0.6)';
-                libraryIcon.innerHTML = `<i class="fas fa-layer-group" style="margin-bottom:4px; font-size:14px; display:block; text-align:center;"></i>`;
-                
-                libraryIcon.style.flexDirection = 'column';
-                appRow.appendChild(libraryIcon);
             }
 
-            renderStoreGames(games) {
+            renderStoreGames(installedIds) {
                 const storeGrid = this.shadowRoot.getElementById('dynamic-store-grid');
                 if (!storeGrid) return;
-
                 storeGrid.innerHTML = '';
 
-                games.forEach((game) => {
+                this.gamesDb.forEach((game) => {
+                    const isInstalled = installedIds.includes(game.id);
                     const item = document.createElement('div');
                     item.className = 'store-item';
-                    item.style.background = `linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.15) 100%), url('${game.bg || game.image}') center/cover`;
+                    item.style.background = `linear-gradient(to top, rgba(0,0,0,0.95) 10%, rgba(0,0,0,0.1) 100%), url('${game.bg || game.image}') center/cover`;
                     
                     item.innerHTML = `
-                        <p class="item-title">${game.name}</p>
-                        <p class="item-price"><i class="fas fa-play" style="font-size:10px; margin-right:5px;"></i> Launch</p>
+                        <div class="item-content">
+                            <p class="item-title">${game.name}</p>
+                            <button class="install-btn ${isInstalled ? 'installed' : ''}">
+                                ${isInstalled ? '<i class="fas fa-check"></i> In Library' : '<i class="fas fa-download"></i> Install'}
+                            </button>
+                        </div>
                     `;
                     
-                    item.addEventListener('click', () => {
-                        this.launchIframeRuntime(game.file_src);
+                    const btn = item.querySelector('.install-btn');
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (!isInstalled) this.installGame(game.id, btn);
                     });
                     
                     storeGrid.appendChild(item);
                 });
             }
 
+            renderLibraryGames(installedIds) {
+                const libraryGrid = this.shadowRoot.getElementById('dynamic-library-grid');
+                if (!libraryGrid) return;
+                libraryGrid.innerHTML = '';
+
+                const installedGames = this.gamesDb.filter(g => installedIds.includes(g.id));
+                
+                if (installedGames.length === 0) {
+                    libraryGrid.innerHTML = `<h3 style="opacity: 0.5; width: 100%; grid-column: 1 / -1; text-align: center; margin-top: 50px;">Your library is empty. Visit the store!</h3>`;
+                    return;
+                }
+
+                installedGames.forEach((game) => {
+                    const item = document.createElement('div');
+                    item.className = 'lib-item';
+                    item.style.backgroundImage = `url('${game.image}')`;
+                    item.innerHTML = `<div class="lib-overlay"><i class="fas fa-play"></i></div>`;
+                    item.addEventListener('click', () => this.launchIframeRuntime(game.file_src, game.id));
+                    libraryGrid.appendChild(item);
+                });
+            }
+
+            // --- System Actions ---
+
+            installGame(gameId, buttonElement) {
+                let installed = JSON.parse(localStorage.getItem('flintos_installed')) || [];
+                if (!installed.includes(gameId)) {
+                    installed.push(gameId);
+                    localStorage.setItem('flintos_installed', JSON.stringify(installed));
+                    
+                    // Add to recents so it pops up on home screen
+                    this.updateRecentGames(gameId);
+                    
+                    buttonElement.innerHTML = '<i class="fas fa-check"></i> In Library';
+                    buttonElement.classList.add('installed');
+                }
+            }
+
+            updateRecentGames(gameId) {
+                let recent = JSON.parse(localStorage.getItem('flintos_recent')) || [];
+                recent = recent.filter(id => id !== gameId); // Remove if exists
+                recent.unshift(gameId); // Add to front
+                if (recent.length > 10) recent.pop(); // Keep max 10
+                localStorage.setItem('flintos_recent', JSON.stringify(recent));
+            }
+
             updateDashboardHero(game, selectedIcon) {
                 this.shadowRoot.querySelectorAll('.app-icon').forEach(el => el.classList.remove('active'));
-                selectedIcon.classList.add('active');
+                if (selectedIcon) selectedIcon.classList.add('active');
 
                 this.currentActiveFileSrc = game.file_src;
+                this.currentGameId = game.id;
 
                 const screen = this.shadowRoot.getElementById('home-screen');
                 const title = this.shadowRoot.getElementById('hero-title');
                 const desc = this.shadowRoot.getElementById('hero-desc');
 
-                if (screen) {
-                    screen.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.9) 100%), url('${game.bg}')`;
-                }
+                if (screen) screen.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 40%, #000000 100%), url('${game.bg}')`;
                 if (title) title.textContent = game.name;
                 if (desc) desc.textContent = game.description;
             }
 
-            launchIframeRuntime(sourceUrl) {
+            launchIframeRuntime(sourceUrl, gameId) {
+                if (gameId) this.updateRecentGames(gameId);
                 const gameLayer = this.shadowRoot.getElementById('game-layer');
                 const gameFrame = this.shadowRoot.getElementById('game-frame');
                 if (gameLayer && gameFrame) {
