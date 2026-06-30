@@ -203,27 +203,12 @@ renderHomeGames(games) {
     const appRow = this.shadowRoot.getElementById('dynamic-app-row');
     if (!appRow) return;
 
+    const storeBtn = this.shadowRoot.getElementById('store-btn');
     appRow.innerHTML = '';
+    if (storeBtn) appRow.appendChild(storeBtn);
 
-    // Dynamically generate Store button
-    const storeBtn = document.createElement('div');
-    storeBtn.className = 'app-icon store-btn system-btn';
-    storeBtn.id = 'store-btn';
-    storeBtn.innerHTML = `<i class="fas fa-bag-shopping"></i><span>Store</span>`;
-    storeBtn.addEventListener('click', () => this.loadView('/public/store.html'));
-    appRow.appendChild(storeBtn);
-
-    // Bulletproof localStorage extraction
-    let savedIds = [];
-    try {
-        savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
-        if (!Array.isArray(savedIds)) savedIds = [];
-    } catch (e) {
-        savedIds = [];
-    }
-
-    // Type-safe matching
-    const savedGames = games.filter(game => savedIds.some(id => String(id) === String(game.id)));
+    const savedNames = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+    const savedGames = games.filter(game => savedNames.includes(game.name));
 
     savedGames.forEach((game) => {
         const icon = document.createElement('div');
@@ -237,9 +222,9 @@ renderHomeGames(games) {
         appRow.appendChild(icon);
     });
 
-    // Dynamically generate Library button
+    // Create and Append Library Icon Node with Event Listener
     const libraryIcon = document.createElement('div');
-    libraryIcon.className = 'app-icon library-icon system-btn';
+    libraryIcon.className = 'app-icon library-icon';
     libraryIcon.style.background = 'rgba(255,255,255,0.05)';
     libraryIcon.style.display = 'flex';
     libraryIcon.style.alignItems = 'center';
@@ -248,9 +233,11 @@ renderHomeGames(games) {
     libraryIcon.style.color = 'rgba(255,255,255,0.6)';
     libraryIcon.style.flexDirection = 'column';
     libraryIcon.innerHTML = `<i class="fas fa-layer-group" style="margin-bottom:4px; font-size:14px; display:block; text-align:center;"></i><span>Library</span>`;
+    
     libraryIcon.addEventListener('click', () => this.loadView('/public/library.html'));
     appRow.appendChild(libraryIcon);
 
+    // Get references to the visibility containers
     const heroContent = this.shadowRoot.getElementById('hero-content');
     const emptyState = this.shadowRoot.getElementById('empty-state');
 
@@ -259,6 +246,7 @@ renderHomeGames(games) {
         if (firstGameIcon) {
             this.updateDashboardHero(savedGames[0], firstGameIcon);
         }
+        
         if (heroContent) heroContent.style.display = 'block';
         if (emptyState) emptyState.style.display = 'none';
     } else {
@@ -279,17 +267,10 @@ renderStoreGames(games) {
     if (!storeGrid) return;
 
     storeGrid.innerHTML = '';
-    
-    let savedIds = [];
-    try {
-        savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
-        if (!Array.isArray(savedIds)) savedIds = [];
-    } catch (e) {
-        savedIds = [];
-    }
+    const savedNames = JSON.parse(localStorage.getItem('flintos_saved')) || [];
 
     games.forEach((game) => {
-        const isSaved = savedIds.some(id => String(id) === String(game.id));
+        const isSaved = savedNames.includes(game.name);
         const item = document.createElement('div');
         item.className = 'store-item';
         item.style.background = `linear-gradient(to top, rgba(3, 5, 10, 0.95) 20%, rgba(3, 5, 10, 0.2) 100%), url('${game.bg || game.image}') center/cover`;
@@ -305,21 +286,9 @@ renderStoreGames(games) {
         `;
         
         item.onclick = () => {
-            let currentSavedIds = [];
-            try {
-                currentSavedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
-                if (!Array.isArray(currentSavedIds)) currentSavedIds = [];
-            } catch (e) {
-                currentSavedIds = [];
-            }
-
-            const alreadySaved = currentSavedIds.some(id => String(id) === String(game.id));
-
-            if (!alreadySaved) {
-                currentSavedIds.push(game.id);
-                // Purge duplicate IDs just in case they slipped in
-                const cleanIds = [...new Set(currentSavedIds)];
-                localStorage.setItem('flintos_saved', JSON.stringify(cleanIds));
+            if (!isSaved) {
+                savedNames.push(game.name);
+                localStorage.setItem('flintos_saved', JSON.stringify(savedNames));
                 this.renderStoreGames(games); 
             } else {
                 this.launchIframeRuntime(game.file_src);
@@ -335,17 +304,8 @@ renderLibraryGames(games) {
     if (!libraryGrid) return;
 
     libraryGrid.innerHTML = '';
-    
-    let savedIds = [];
-    try {
-        savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
-        if (!Array.isArray(savedIds)) savedIds = [];
-    } catch (e) {
-        savedIds = [];
-    }
-
-    // Fixed: Now using the exact same type-safe matching as the other screens
-    const libraryGames = games.filter(game => savedIds.some(id => String(id) === String(game.id)));
+    const savedNames = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+    const libraryGames = games.filter(game => savedNames.includes(game.name));
 
     if (libraryGames.length === 0) {
         libraryGrid.innerHTML = `
