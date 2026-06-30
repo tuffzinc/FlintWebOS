@@ -381,18 +381,19 @@ if (homeGames.length > 0) {
     if (emptyState) emptyState.style.display = 'none';
 }
                     
-                    if (heroContent) heroContent.style.display = 'block';
+if (heroContent) heroContent.style.display = 'block';
                     if (emptyState) emptyState.style.display = 'none';
                 } else {
                     const title = this.shadowRoot.getElementById('hero-title');
                     const desc = this.shadowRoot.getElementById('hero-desc');
                     const screen = this.shadowRoot.getElementById('home-screen');
+                    
                     if (title) title.textContent = "Welcome to FlintOS";
                     if (desc) desc.textContent = "No featured games available.";
                     if (screen) screen.style.backgroundImage = "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.95) 100%)";
                     
                     if (heroContent) heroContent.style.display = 'none';
-                    if (emptyState) emptyState.style.display = 'block';
+                    if (emptyState) emptyState.style.display = 'block'; 
                 }
             }
 
