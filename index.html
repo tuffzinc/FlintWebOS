@@ -199,70 +199,68 @@
                 }
             }
 
-            renderHomeGames(games) {
-                const appRow = this.shadowRoot.getElementById('dynamic-app-row');
-                if (!appRow) return;
+renderHomeGames(games) {
+    const appRow = this.shadowRoot.getElementById('dynamic-app-row');
+    if (!appRow) return;
 
-                appRow.innerHTML = '';
+    const storeBtn = this.shadowRoot.getElementById('store-btn');
+    appRow.innerHTML = '';
+    if (storeBtn) appRow.appendChild(storeBtn);
 
-                // Dynamic System Navigation Mount: Store Button
-                const storeIcon = document.createElement('div');
-                storeIcon.className = 'app-icon system-btn store-btn';
-                storeIcon.id = 'store-btn';
-                storeIcon.innerHTML = `<i class="fas fa-bag-shopping"></i><span>Store</span>`;
-                storeIcon.onclick = () => this.loadView('/public/store.html');
-                appRow.appendChild(storeIcon);
+    const savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
+    const savedGames = games.filter(game => savedIds.includes(game.id));
 
-                // Dynamic System Navigation Mount: Library Button
-                const libraryIcon = document.createElement('div');
-                libraryIcon.className = 'app-icon system-btn library-btn';
-                libraryIcon.id = 'library-btn';
-                libraryIcon.innerHTML = `<i class="fas fa-layer-group"></i><span>Library</span>`;
-                libraryIcon.onclick = () => this.loadView('/public/library.html');
-                appRow.appendChild(libraryIcon);
+    savedGames.forEach((game) => {
+        const icon = document.createElement('div');
+        icon.className = 'app-icon';
+        icon.style.backgroundImage = `url('${game.image}')`;
+        icon.style.backgroundSize = 'cover';
+        icon.style.backgroundPosition = 'center';
+        icon.style.backgroundRepeat = 'no-repeat';
+        
+        icon.addEventListener('click', () => this.updateDashboardHero(game, icon));
+        appRow.appendChild(icon);
+    });
 
-                // Populate Saved App Array Blocks
-                const savedIds = JSON.parse(localStorage.getItem('flintos_saved')) || [];
-                const savedGames = games.filter(game => savedIds.includes(game.id));
+    // Create and Append Library Icon Node with Event Listener
+    const libraryIcon = document.createElement('div');
+    libraryIcon.className = 'app-icon library-icon';
+    libraryIcon.style.background = 'rgba(255,255,255,0.05)';
+    libraryIcon.style.display = 'flex';
+    libraryIcon.style.alignItems = 'center';
+    libraryIcon.style.justifyContent = 'center';
+    libraryIcon.style.fontSize = '11px';
+    libraryIcon.style.color = 'rgba(255,255,255,0.6)';
+    libraryIcon.style.flexDirection = 'column';
+    libraryIcon.innerHTML = `<i class="fas fa-layer-group" style="margin-bottom:4px; font-size:14px; display:block; text-align:center;"></i><span>Library</span>`;
+    
+    libraryIcon.addEventListener('click', () => this.loadView('/public/library.html'));
+    appRow.appendChild(libraryIcon);
 
-                savedGames.forEach((game) => {
-                    const icon = document.createElement('div');
-                    icon.className = 'app-icon game-icon';
-                    icon.style.backgroundImage = `url('${game.image}')`;
-                    icon.style.backgroundSize = 'cover';
-                    icon.style.backgroundPosition = 'center';
-                    
-                    icon.onclick = () => this.updateDashboardHero(game, icon);
-                    appRow.appendChild(icon);
-                });
-
-                const heroContent = this.shadowRoot.getElementById('hero-content');
-                const emptyState = this.shadowRoot.getElementById('empty-state');
-
-                if (savedGames.length > 0) {
-                    if (heroContent) heroContent.style.display = 'block';
-                    if (emptyState) emptyState.style.display = 'none';
-                    
-                    const firstGameIcon = appRow.querySelector('.game-icon');
-                    if (firstGameIcon) {
-                        this.updateDashboardHero(savedGames[0], firstGameIcon);
-                    }
-                } else {
-const heroContent = this.shadowRoot.getElementById('hero-content');
-    if (heroContent) heroContent.style.display = 'none';
-
-    // Show the empty state message
+    // Get references to the visibility containers
+    const heroContent = this.shadowRoot.getElementById('hero-content');
     const emptyState = this.shadowRoot.getElementById('empty-state');
-    if (emptyState) emptyState.style.display = 'block';
 
-    const title = this.shadowRoot.getElementById('hero-title');
-    const desc = this.shadowRoot.getElementById('hero-desc');
-    const screen = this.shadowRoot.getElementById('home-screen');
-    if (title) title.textContent = "Welcome to FlintOS";
-    if (desc) desc.textContent = "Your dashboard row is currently clear. Jump into the Store menu above to save games directly into your workspace.";
-    if (screen) screen.style.backgroundImage = "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.95) 100%)";
-                }
-            }
+    if (savedGames.length > 0) {
+        const firstGameIcon = appRow.querySelector('.app-icon:not(#store-btn):not(.library-icon)');
+        if (firstGameIcon) {
+            this.updateDashboardHero(savedGames[0], firstGameIcon);
+        }
+        
+        if (heroContent) heroContent.style.display = 'block';
+        if (emptyState) emptyState.style.display = 'none';
+    } else {
+        const title = this.shadowRoot.getElementById('hero-title');
+        const desc = this.shadowRoot.getElementById('hero-desc');
+        const screen = this.shadowRoot.getElementById('home-screen');
+        if (title) title.textContent = "Welcome to FlintOS";
+        if (desc) desc.textContent = "Your dashboard row is currently clear. Jump into the Store menu above to save games directly into your workspace.";
+        if (screen) screen.style.backgroundImage = "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.95) 100%)";
+        
+        if (heroContent) heroContent.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
+    }
+}
 
             renderStoreGames(games) {
                 const storeGrid = this.shadowRoot.getElementById('dynamic-store-grid');
