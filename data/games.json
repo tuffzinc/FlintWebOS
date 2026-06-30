@@ -30,5 +30,13 @@
     "description": "Brave hundreds of hand-crafted challenges in this super-tight platformer, as you help Madeline survive her journey to the top of Celeste Mountain!",
     "file_src": "/data/games/celeste/game.html",
     "featured": false
+  },
+  {
+    "name": "Brotato",
+    "image": "/data/games/brotato/logo.png",
+    "bg": "/data/games/brotato/banner.png",
+    "description": "Brotato is a top-down arena shooter roguelite where you play a potato wielding up to 6 weapons at a time to fight off hordes of aliens.",
+    "file_src": "/data/games/brotato/game.html",
+    "featured": false
   }
 ]
