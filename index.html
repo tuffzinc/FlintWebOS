@@ -30,7 +30,26 @@
                 super();
                 this.attachShadow({ mode: 'open' });
                 this.currentActiveFileSrc = '';
+                this.currentActiveGameName = '';
+                this.currentViewFile = '';
                 this.timeInterval = null;
+                
+                let lastCtrlPress = 0;
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === 'ControlRight') {
+                        const now = Date.now();
+                        if (now - lastCtrlPress < 400) {
+                            const gameLayer = this.shadowRoot.getElementById('game-layer');
+                            if (gameLayer && gameLayer.classList.contains('active')) {
+                                const menu = this.shadowRoot.getElementById('game-menu-overlay');
+                                if (menu) {
+                                    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+                                }
+                            }
+                        }
+                        lastCtrlPress = now;
+                    }
+                });
             }
 
             async connectedCallback() {
@@ -62,44 +81,136 @@
                             border: none;
                             background-color: #000000;
                         }
-                        #close-game-btn {
+                        #game-menu-overlay {
+                            display: none;
                             position: absolute;
-                            top: 25px; 
-                            right: 25px;
-                            background: rgba(15, 15, 25, 0.7);
+                            top: 0; left: 0;
+                            width: 100%; height: 100%;
+                            background: rgba(5, 7, 15, 0.9);
+                            backdrop-filter: blur(15px);
+                            -webkit-backdrop-filter: blur(15px);
+                            z-index: 100001;
+                            align-items: center;
+                            justify-content: center;
+                            flex-direction: column;
+                            gap: 25px;
+                            animation: fadeIn 0.2s ease forwards;
+                        }
+                        @keyframes fadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        .menu-title {
+                            margin: 0;
+                            font-size: 2.2rem;
+                            font-weight: 700;
+                            letter-spacing: -0.5px;
                             color: #ffffff;
-                            border: 1px solid rgba(255, 255, 255, 0.12);
-                            padding: 10px 22px;                
-                            border-radius: 30px;              
-                            font-size: 0.9rem;                
-                            font-weight: 600;       
+                            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                        }
+                        .menu-options {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 15px;
+                            width: 280px;
+                        }
+                        .menu-btn {
+                            background: rgba(255, 255, 255, 0.06);
+                            color: #ffffff;
+                            border: 1px solid rgba(255, 255, 255, 0.1);
+                            padding: 14px 24px;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            font-weight: 600;
                             cursor: pointer;
-                            backdrop-filter: blur(20px);
-                            -webkit-backdrop-filter: blur(20px);
-                            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                            z-index: 100000;
                             display: flex;
                             align-items: center;
-                            gap: 8px;
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                            gap: 14px;
+                            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
                         }
-                        #close-game-btn:hover {
+                        .menu-btn:hover {
                             background: #ffffff;
                             color: #000000;
                             border-color: #ffffff;
                             transform: translateY(-2px);
-                            box-shadow: 0 8px 25px rgba(255,255,255,0.25);
+                            box-shadow: 0 8px 20px rgba(255,255,255,0.2);
+                        }
+                        .menu-btn-danger {
+                            background: rgba(255, 59, 48, 0.15);
+                            border-color: rgba(255, 59, 48, 0.3);
+                            color: #ff453a;
+                        }
+                        .menu-btn-danger:hover {
+                            background: #ff3b30;
+                            color: #ffffff;
+                            border-color: #ff3b30;
+                            box-shadow: 0 8px 20px rgba(255, 59, 48, 0.4);
                         }
                     </style>
                     
                     <div id="app-container"></div>
                     
                     <div id="game-layer">
-                        <button id="close-game-btn"><i class="fas fa-xmark"></i> Close Game</button>
                         <iframe id="game-frame" src="about:blank"></iframe>
+                        <div id="game-menu-overlay">
+                            <h2 class="menu-title">FlintOS System Menu</h2>
+                            <div class="menu-options">
+                                <button id="menu-resume-btn" class="menu-btn"><i class="fas fa-play"></i> Resume Game</button>
+                                <button id="menu-screenshot-btn" class="menu-btn"><i class="fas fa-camera"></i> Take Screenshot</button>
+                                <button id="menu-close-btn" class="menu-btn menu-btn-danger"><i class="fas fa-xmark"></i> Close Game</button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 this.container = this.shadowRoot.getElementById('app-container');
+                
+                this.shadowRoot.getElementById('menu-resume-btn').onclick = () => {
+                    this.shadowRoot.getElementById('game-menu-overlay').style.display = 'none';
+                };
+
+                this.shadowRoot.getElementById('menu-screenshot-btn').onclick = () => {
+                    const flash = document.createElement('div');
+                    Object.assign(flash.style, {
+                        position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+                        backgroundColor: '#ffffff', zIndex: '100002', transition: 'opacity 0.4s ease'
+                    });
+                    this.shadowRoot.appendChild(flash);
+                    setTimeout(() => {
+                        flash.style.opacity = '0';
+                        setTimeout(() => flash.remove(), 400);
+                    }, 50);
+
+                    const toast = document.createElement('div');
+                    Object.assign(toast.style, {
+                        position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+                        background: 'rgba(10, 15, 30, 0.9)', color: '#fff', padding: '12px 24px',
+                        borderRadius: '30px', fontSize: '0.9rem', fontWeight: '600', zIndex: '100003',
+                        border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                    });
+                    toast.innerHTML = '<i class="fas fa-check-circle" style="color:#34c759; margin-right:8px;"></i> Screenshot saved!';
+                    this.shadowRoot.appendChild(toast);
+                    setTimeout(() => {
+                        toast.style.transition = 'opacity 0.5s ease';
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 500);
+                    }, 2000);
+                };
+
+                this.shadowRoot.getElementById('menu-close-btn').onclick = () => {
+                    const gameLayer = this.shadowRoot.getElementById('game-layer');
+                    const gameFrame = this.shadowRoot.getElementById('game-frame');
+                    const menu = this.shadowRoot.getElementById('game-menu-overlay');
+                    if (gameFrame) gameFrame.src = 'about:blank';
+                    if (gameLayer) gameLayer.classList.remove('active');
+                    if (menu) menu.style.display = 'none';
+                    
+                    if (this.currentViewFile === '/public/home.html') {
+                        this.loadGamesData('home');
+                    } else if (this.currentViewFile === '/public/library.html') {
+                        this.loadGamesData('library');
+                    }
+                };
                 
                 await this.loadView('/public/loading.html');
                 
@@ -118,6 +229,7 @@
                     const response = await fetch(filename);
                     if (!response.ok) throw new Error(`Failed to load ${filename}`);
                     const html = await response.text();
+                    this.currentViewFile = filename;
                     this.container.innerHTML = html;
                     this.bindEvents(filename);
                 } catch (err) {
@@ -126,18 +238,6 @@
             }
 
             bindEvents(currentView) {
-                const closeGameBtn = this.shadowRoot.getElementById('close-game-btn');
-                if (closeGameBtn) {
-                    closeGameBtn.onclick = () => {
-                        const gameLayer = this.shadowRoot.getElementById('game-layer');
-                        const gameFrame = this.shadowRoot.getElementById('game-frame');
-                        if (gameLayer && gameFrame) {
-                            gameFrame.src = 'about:blank';
-                            gameLayer.classList.remove('active');
-                        }
-                    };
-                }
-
                 const enterBtn = this.shadowRoot.getElementById('enter-home');
                 if (enterBtn) {
                     enterBtn.onclick = () => {
@@ -155,7 +255,7 @@
                 if (playBtn) {
                     playBtn.onclick = () => {
                         if (this.currentActiveFileSrc) {
-                            this.launchIframeRuntime(this.currentActiveFileSrc);
+                            this.launchIframeRuntime(this.currentActiveFileSrc, this.currentActiveGameName);
                         } else {
                             alert("FlintOS Error: No execution target selected.");
                         }
@@ -202,6 +302,16 @@
                 appRow.innerHTML = '';
 
                 const featuredGames = games.filter(game => game.featured === true);
+                const history = JSON.parse(localStorage.getItem('flintos_history')) || [];
+
+                featuredGames.sort((a, b) => {
+                    const idxA = history.indexOf(a.name);
+                    const idxB = history.indexOf(b.name);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return 0;
+                });
 
                 featuredGames.forEach((game) => {
                     const icon = document.createElement('div');
@@ -270,7 +380,17 @@
                     return;
                 }
 
-                games.forEach((game) => {
+                const history = JSON.parse(localStorage.getItem('flintos_history')) || [];
+                const orderedGames = [...games].sort((a, b) => {
+                    const idxA = history.indexOf(a.name);
+                    const idxB = history.indexOf(b.name);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return 0;
+                });
+
+                orderedGames.forEach((game) => {
                     const item = document.createElement('div');
                     item.className = 'store-item';
                     item.style.background = `linear-gradient(to top, rgba(3, 5, 10, 0.95) 20%, rgba(3, 5, 10, 0.2) 100%), url('${game.bg || game.image}') center/cover`;
@@ -284,7 +404,7 @@
                     `;
                     
                     item.onclick = () => {
-                        this.launchIframeRuntime(game.file_src);
+                        this.launchIframeRuntime(game.file_src, game.name);
                     };
                     
                     libraryGrid.appendChild(item);
@@ -296,6 +416,7 @@
                 selectedIcon.classList.add('active');
 
                 this.currentActiveFileSrc = game.file_src;
+                this.currentActiveGameName = game.name;
 
                 const screen = this.shadowRoot.getElementById('home-screen');
                 const title = this.shadowRoot.getElementById('hero-title');
@@ -314,7 +435,14 @@
                 if (desc) desc.textContent = game.description;
             }
 
-            launchIframeRuntime(sourceUrl) {
+            launchIframeRuntime(sourceUrl, gameName) {
+                if (gameName) {
+                    let history = JSON.parse(localStorage.getItem('flintos_history')) || [];
+                    history = history.filter(name => name !== gameName);
+                    history.unshift(gameName);
+                    localStorage.setItem('flintos_history', JSON.stringify(history));
+                }
+
                 const gameLayer = this.shadowRoot.getElementById('game-layer');
                 const gameFrame = this.shadowRoot.getElementById('game-frame');
                 if (gameLayer && gameFrame) {
