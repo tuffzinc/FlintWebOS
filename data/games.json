@@ -38,5 +38,13 @@
     "description": "Brotato is a top-down arena shooter roguelite where you play a potato wielding up to 6 weapons at a time to fight off hordes of aliens.",
     "file_src": "/data/games/brotato/game.html",
     "featured": false
+  },
+  {
+    "name": "Geometry Dash",
+    "image": "/data/games/geometrydash/logo.png",
+    "bg": "/data/games/geometrydash/banner.gif",
+    "description": "Geometry Dash is a popular, rhythm-based action platformer created by developer Robert Topala.",
+    "file_src": "/data/games/geometrydash/game.html",
+    "featured": false
   }
 ]
