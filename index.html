@@ -327,20 +327,22 @@
 
                 appRow.innerHTML = '';
 
-                const featuredGames = games.filter(game => game.featured === true);
-                const history = JSON.parse(localStorage.getItem('flintos_history')) || [];
+const history = JSON.parse(localStorage.getItem('flintos_history')) || [];
 
-                featuredGames.sort((a, b) => {
-                    const idxA = history.indexOf(a.name);
-                    const idxB = history.indexOf(b.name);
-                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-                    if (idxA !== -1) return -1;
-                    if (idxB !== -1) return 1;
-                    return 0;
-                });
+const homeGames = games.filter(game => game.featured === true || history.includes(game.name));
 
-                featuredGames.forEach((game) => {
-                    const icon = document.createElement('div');
+homeGames.sort((a, b) => {
+    const idxA = history.indexOf(a.name);
+    const idxB = history.indexOf(b.name);
+    
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return 0;
+});
+
+homeGames.forEach((game) => {
+    const icon = document.createElement('div');
                     icon.className = 'app-icon';
                     icon.style.backgroundImage = `url('${game.image}')`;
                     icon.style.backgroundSize = 'cover';
@@ -369,11 +371,15 @@
                 const heroContent = this.shadowRoot.getElementById('hero-content');
                 const emptyState = this.shadowRoot.getElementById('empty-state');
 
-                if (featuredGames.length > 0) {
-                    const firstGameIcon = appRow.querySelector('.app-icon:not(.library-icon)');
-                    if (firstGameIcon) {
-                        this.updateDashboardHero(featuredGames[0], firstGameIcon);
-                    }
+if (homeGames.length > 0) {
+    const firstGameIcon = appRow.querySelector('.app-icon:not(.library-icon)');
+    if (firstGameIcon) {
+        this.updateDashboardHero(homeGames[0], firstGameIcon);
+    }
+    
+    if (heroContent) heroContent.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+}
                     
                     if (heroContent) heroContent.style.display = 'block';
                     if (emptyState) emptyState.style.display = 'none';
