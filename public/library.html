@@ -55,12 +55,20 @@
         letter-spacing: -0.5px;
     }
     
-    .store-nav {
+    /* Updated action header to hold nav and search together */
+    .store-action-bar {
         display: flex;
-        gap: 35px;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 35px;
         border-bottom: 1px solid rgba(255,255,255,0.06);
         padding-bottom: 15px;
+        gap: 20px;
+    }
+
+    .store-nav {
+        display: flex;
+        gap: 35px;
     }
     .store-nav span {
         opacity: 0.5;
@@ -81,6 +89,43 @@
         box-shadow: 0 0 10px #ffffff;
     }
 
+    /* Premium Search Bar Styling */
+    .search-wrapper {
+        position: relative;
+        width: 300px;
+    }
+    .search-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.95rem;
+        pointer-events: none;
+        transition: color 0.2s ease;
+    }
+    .library-search {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 30px;
+        padding: 10px 16px 10px 42px;
+        box-sizing: border-box;
+        color: #ffffff;
+        font-size: 0.95rem;
+        font-weight: 500;
+        outline: none;
+        transition: all 0.25s ease;
+    }
+    .library-search:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+    }
+    .search-wrapper:focus-within i {
+        color: #ffffff;
+    }
+
     .store-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -90,7 +135,6 @@
     }
     .store-grid::-webkit-scrollbar { width: 6px; }
     
-    /* Elegant Horizontal Widescreen Console Banner Cards */
     .store-item {
         height: 165px;
         border-radius: 14px;
@@ -150,9 +194,17 @@
         <button class="back-btn" id="back-btn"><i class="fas fa-arrow-left"></i></button>
         <h2 class="store-title">Your Library</h2>
     </div>
-    <div class="store-nav">
-        <span class="active">Saved Apps</span>
-        <span>System Items</span>
+    
+    <div class="store-action-bar">
+        <div class="store-nav">
+            <span class="active">Saved Apps</span>
+            <span>System Items</span>
+        </div>
+        <div class="search-wrapper">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="library-search-input" class="library-search" placeholder="Search library...">
+        </div>
     </div>
+    
     <div class="store-grid" id="dynamic-library-grid"></div>
 </div>
